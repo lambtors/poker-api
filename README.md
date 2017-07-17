@@ -3,5 +3,5 @@ A proof of concept project to practise and learn functional programming concepts
 
 
 # Credits
-- Thanks to [CodelyTV](https://codely.tv/) for their awesome Scala bootstrap template!
+- Thanks to [CodelyTV](http://codely.tv/) for their awesome Scala bootstrap template!
 
