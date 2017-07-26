@@ -7,10 +7,12 @@ import com.lambtors.poker_api.module.poker.domain.error.PokerGameAlreadyExisting
 import com.lambtors.poker_api.module.poker.domain.model.{AmountOfPlayers, GameId, PokerGame}
 
 final class PokerGameCreator(pokerGameRepository: PokerGameRepository)(implicit ec: ExecutionContext) {
-  def create(amountOfPlayers: AmountOfPlayers, gameId: GameId): Future[Unit] = {
-    pokerGameRepository
-      .search(gameId)
-      .flatMap(_.fold(pokerGameRepository.insert(PokerGame(gameId, amountOfPlayers)))(_ =>
-        Future.failed[Unit](PokerGameAlreadyExisting(gameId))))
-  }
+  def create(amountOfPlayers: AmountOfPlayers, gameId: GameId): Future[Unit] =
+    pokerGameRepository.search(gameId).flatMap { searchResult =>
+      if (searchResult.isDefined) {
+        Future.failed[Unit](PokerGameAlreadyExisting(gameId))
+      } else {
+        pokerGameRepository.insert(PokerGame(gameId, amountOfPlayers))
+      }
+    }
 }
