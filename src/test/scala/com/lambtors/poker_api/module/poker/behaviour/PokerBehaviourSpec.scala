@@ -4,12 +4,15 @@ import scala.concurrent.Future
 
 import com.lambtors.poker_api.module.poker.domain.PokerGameRepository
 import com.lambtors.poker_api.module.poker.domain.model.{GameId, PokerGame}
+import org.scalactic.TypeCheckedTripleEquals
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{OneInstancePerTest, WordSpec}
+import org.scalatest.{Matchers, OneInstancePerTest, WordSpec}
 import org.scalatest.concurrent.ScalaFutures
 
 trait PokerBehaviourSpec
     extends WordSpec
+    with Matchers
+    with TypeCheckedTripleEquals
     with MockFactory
     with OneInstancePerTest
     with ScalaFutures
