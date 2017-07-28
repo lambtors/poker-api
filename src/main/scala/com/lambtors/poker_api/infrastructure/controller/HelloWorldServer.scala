@@ -2,22 +2,22 @@ package com.lambtors.poker_api.infrastructure.controller
 
 import scala.io.StdIn
 
+import play.api.libs.json.JsPath
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.stream.ActorMaterializer
-import spray.json._
-import DefaultJsonProtocol._
+import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
 
-object HelloWorldServer extends App {
+object HelloWorldServer extends App with PlayJsonSupport {
   implicit val system           = ActorSystem("poker-api-system")
   implicit val materializer     = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
   case class PokerPostRequest(amountOfPlayers: Int)
-  implicit val pokerPostRequestMarshaller = jsonFormat1(PokerPostRequest)
+  implicit val pokerPostRequestMarshaller = (JsPath \ "amount_of_players").read[Int].map(PokerPostRequest.apply)
 
   val routes =
     path("poker") {

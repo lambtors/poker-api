@@ -5,15 +5,17 @@ version := "0.0.1"
 /** ********* PROJECT SETTINGS ******************/
 Configuration.settings
 
+resolvers += Resolver.bintrayRepo("hseeberger", "maven")
+
 /** ********* PROD DEPENDENCIES *****************/
 libraryDependencies ++= {
   val akkaHttpVersion = "10.0.9"
   Seq(
-    "com.github.nscala-time" %% "nscala-time"          % "2.16.0",
-    "com.lihaoyi"            %% "pprint"               % "0.5.2",
-    "com.typesafe.akka"      %% "akka-http"            % akkaHttpVersion,
-    "com.typesafe.akka"      %% "akka-http-spray-json" % akkaHttpVersion,
-    "io.spray"               %% "spray-json"           % "1.3.3"
+    "com.github.nscala-time" %% "nscala-time"         % "2.16.0",
+    "com.lihaoyi"            %% "pprint"              % "0.5.2",
+    "com.typesafe.akka"      %% "akka-http"           % akkaHttpVersion,
+    "de.heikoseeberger"      %% "akka-http-play-json" % "1.17.0",
+    "com.typesafe.play"      %% "play-json"           % "2.6.0"
   )
 }
 
