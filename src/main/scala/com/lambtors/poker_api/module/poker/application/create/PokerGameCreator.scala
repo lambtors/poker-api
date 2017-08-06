@@ -12,7 +12,7 @@ final class PokerGameCreator(pokerGameRepository: PokerGameRepository)(implicit 
       if (searchResult.isDefined) {
         Future.failed[Unit](PokerGameAlreadyExisting(gameId))
       } else {
-        pokerGameRepository.insert(PokerGame(gameId, amountOfPlayers))
+        pokerGameRepository.insert(PokerGame(gameId, amountOfPlayers, List.empty))
       }
     }
 }
