@@ -5,7 +5,7 @@ import com.lambtors.poker_api.module.poker.domain.model.{AmountOfPlayers, GameId
 object PokerGameStub {
   def create(gameId: GameId = GameIdStub.random(),
              amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
-    PokerGame(gameId, amountOfPlayers)
+    PokerGame(gameId, amountOfPlayers, List.empty)
 
   def random: PokerGame = create()
 }
