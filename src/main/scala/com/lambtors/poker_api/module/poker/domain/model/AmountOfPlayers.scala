@@ -2,6 +2,8 @@ package com.lambtors.poker_api.module.poker.domain.model
 
 import scala.concurrent.Future
 
+import com.lambtors.poker_api.module.poker.domain.error.InvalidAmountOfPlayers
+
 final case class AmountOfPlayers(amount: Int)
 
 object AmountOfPlayers {
