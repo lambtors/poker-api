@@ -6,11 +6,16 @@ version := "0.0.1"
 Configuration.settings
 
 /** ********* PROD DEPENDENCIES *****************/
-libraryDependencies ++= Seq(
-  "com.github.nscala-time" %% "nscala-time" % "2.16.0",
-  "com.lihaoyi"            %% "pprint"      % "0.5.2",
-  "com.typesafe.akka"      %% "akka-http"   % "10.0.9"
-)
+libraryDependencies ++= {
+  val akkaHttpVersion = "10.0.9"
+  Seq(
+    "com.github.nscala-time" %% "nscala-time"          % "2.16.0",
+    "com.lihaoyi"            %% "pprint"               % "0.5.2",
+    "com.typesafe.akka"      %% "akka-http"            % akkaHttpVersion,
+    "com.typesafe.akka"      %% "akka-http-spray-json" % akkaHttpVersion,
+    "io.spray"               %% "spray-json"           % "1.3.3"
+  )
+}
 
 /** ********* TEST DEPENDENCIES *****************/
 libraryDependencies ++= Seq(
