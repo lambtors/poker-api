@@ -18,8 +18,7 @@ import com.lambtors.poker_api.module.poker.infrastructure.stub.{
 
 final class CreatePokerGameSpec extends PokerBehaviourSpec {
 
-  private implicit val ec = scala.concurrent.ExecutionContext.global
-  val commandHandler      = new CreatePokerGameCommandHandler(new PokerGameCreator(pokerGameRepository))
+  val commandHandler = new CreatePokerGameCommandHandler(new PokerGameCreator(pokerGameRepository))
 
   "A CreatePokerGameCommandHandler" should {
     "create a poker game" in {
