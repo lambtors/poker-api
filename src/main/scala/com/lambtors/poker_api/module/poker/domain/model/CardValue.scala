@@ -1,6 +1,10 @@
 package com.lambtors.poker_api.module.poker.domain.model
 
-sealed abstract class CardValue(value: String)
+import scala.util.Random
+
+import ca.mrvisser.sealerate
+
+sealed abstract class CardValue(val value: String)
 
 case object Ace extends CardValue("A")
 case object Two extends CardValue("2")
@@ -15,3 +19,9 @@ case object Ten extends CardValue("10")
 case object Jay extends CardValue("J")
 case object Cue extends CardValue("Q")
 case object Kay extends CardValue("K")
+
+object CardValue {
+  val values = sealerate.values[CardValue]
+
+  def randomValue: CardValue = Random.shuffle(values).head
+}
