@@ -10,8 +10,7 @@ libraryDependencies ++= Seq(
   "com.github.nscala-time" %% "nscala-time" % "2.16.0",
   "com.lihaoyi"            %% "pprint"      % "0.5.2",
   "com.typesafe.akka"      %% "akka-http"   % "10.0.9",
-  "ca.mrvisser"            %% "sealerate"   % "0.0.5",
-
+  "ca.mrvisser"            %% "sealerate"   % "0.0.5"
 )
 
 /** ********* TEST DEPENDENCIES *****************/
