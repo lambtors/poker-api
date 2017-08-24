@@ -12,4 +12,8 @@ final case class FlopNotPossibleWhenItIsAlreadyGiven(gameId: GameId) extends Pok
 
 final case class TurnNotPossibleWhenItIsAlreadyGiven(gameId: GameId) extends PokerError
 
+final case class TurnNotPossibleWhenFlopIsNotGiven(gameId: GameId) extends PokerError
+
 final case class RiverNotPossibleWhenItIsAlreadyGiven(gameId: GameId) extends PokerError
+
+final case class RiverNotPossibleWhenTurnIsNotGiven(gameId: GameId) extends PokerError

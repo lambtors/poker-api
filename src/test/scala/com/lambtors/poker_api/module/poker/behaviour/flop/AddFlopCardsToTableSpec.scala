@@ -4,7 +4,7 @@ import java.util.UUID
 
 import com.lambtors.poker_api.module.poker.application.flop.{AddFlopCardsToTableCommandHandler, FlopCardsAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.PokerGameNotFound
+import com.lambtors.poker_api.module.poker.domain.error.{FlopNotPossibleWhenItIsAlreadyGiven, PokerGameNotFound}
 import com.lambtors.poker_api.module.poker.domain.model.InvalidGameId
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
@@ -35,6 +35,16 @@ class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
       shouldUpdatePokerGame(pokerGame.copy(tableCards = shuffledAvailableCards.take(3)))
 
       commandHandler.handle(command).futureValue
+    }
+
+    "return a failed future in case the game has flop already given" in {
+      val command = AddFlopCardsToTableCommandStub.random()
+      val gameId  = GameIdStub.create(UUID.fromString(command.gameId))
+      val pokerGame = PokerGameStub.createGameAtFlop(gameId)
+
+      shouldFindPokerGame(gameId, pokerGame)
+
+      commandHandler.handle(command).failed.futureValue should ===(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
     }
 
     "return a failed future in case a game already exists with the same id" in {
