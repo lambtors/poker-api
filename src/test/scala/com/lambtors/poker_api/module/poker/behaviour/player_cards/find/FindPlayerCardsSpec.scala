@@ -7,6 +7,7 @@ import com.lambtors.poker_api.module.poker.application.player_cards.find.{
   PlayerCardsFinder
 }
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
+import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
 import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   FindPlayerCardsQueryStub,
   FindPlayerCardsResponseStub,
@@ -28,6 +29,15 @@ final class FindPlayerCardsSpec extends PokerBehaviourSpec {
       val expectedResponse = FindPlayerCardsResponseStub.create(player.cards)
 
       queryHandler.handle(query).futureValue shouldBe expectedResponse
+    }
+
+    "fail if the player does not exist" in {
+      val query = FindPlayerCardsQueryStub.random()
+
+      val playerId = PlayerIdStub.create(UUID.fromString(query.playerId))
+      shouldNotFindPlayer(playerId)
+
+      queryHandler.handle(query).failed.futureValue shouldBe PlayerNotFound(playerId)
     }
   }
 }
