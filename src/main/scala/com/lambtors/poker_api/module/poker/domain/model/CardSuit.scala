@@ -1,6 +1,9 @@
 package com.lambtors.poker_api.module.poker.domain.model
 
+import scala.util.Random
+
 import ca.mrvisser.sealerate
+import com.lambtors.poker_api.module.poker.domain.model.CardSuit.values
 
 sealed abstract class CardSuit(suitName: String)
 
@@ -11,4 +14,6 @@ object CardSuit {
   case object Spades   extends CardSuit("spades")
 
   def all: Set[CardSuit] = sealerate.values[CardSuit]
+
+  def randomSuit: CardSuit = Random.shuffle(all).head
 }

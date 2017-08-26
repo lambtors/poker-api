@@ -9,26 +9,36 @@ import com.lambtors.poker_api.module.poker.domain.error.{
   InvalidGameId,
   PokerGameAlreadyExisting
 }
-import com.lambtors.poker_api.module.poker.infrastructure.stub.{
-  AmountOfPlayersStub,
-  CreatePokerGameCommandStub,
-  GameIdStub,
-  PokerGameStub
-}
+import com.lambtors.poker_api.module.poker.infrastructure.stub._
+import com.lambtors.poker_api.module.shared.ProviderSpec
 
-final class CreatePokerGameSpec extends PokerBehaviourSpec {
-
-  val commandHandler = new CreatePokerGameCommandHandler(new PokerGameCreator(pokerGameRepository))
+final class CreatePokerGameSpec extends PokerBehaviourSpec with ProviderSpec {
+  private val commandHandler = new CreatePokerGameCommandHandler(
+    new PokerGameCreator(pokerGameRepository, playerRepository, uuidProvider, deckProvider)
+  )
 
   "A CreatePokerGameCommandHandler" should {
     "create a poker game" in {
       val command = CreatePokerGameCommandStub.random()
 
       val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
-      val pokerGame = PokerGameStub.create(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
+      val pokerGame = PokerGameStub.createNew(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
+      var deck = CardStub.randomDeck()
 
       shouldNotFindPokerGame(gameId)
       shouldInsertPokerGame(pokerGame)
+      shouldProvideDeck(deck)
+
+      (1 to command.amountOfPlayers).foreach {_ =>
+        val uuid = UUID.randomUUID()
+        shouldProvideUUID(uuid)
+
+        val firstCard :: cardsWithoutFirstCard = deck
+        val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
+        deck = cardsWithoutFirstAndSecondCard
+
+        shouldInsertPlayer(PlayerStub.create(PlayerIdStub.create(uuid), gameId, firstCard, secondCard))
+      }
 
       commandHandler.handle(command).futureValue
     }
