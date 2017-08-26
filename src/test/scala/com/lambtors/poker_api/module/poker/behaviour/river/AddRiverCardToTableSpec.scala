@@ -6,7 +6,12 @@ import scala.util.Random
 
 import com.lambtors.poker_api.module.poker.application.river.{AddRiverCardToTableCommandHandler, RiverCardAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{InvalidGameId, PokerGameNotFound, RiverNotPossibleWhenItIsAlreadyGiven, RiverNotPossibleWhenTurnIsNotGiven}
+import com.lambtors.poker_api.module.poker.domain.error.{
+  InvalidGameId,
+  PokerGameNotFound,
+  RiverNotPossibleWhenItIsAlreadyGiven,
+  RiverNotPossibleWhenTurnIsNotGiven
+}
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 

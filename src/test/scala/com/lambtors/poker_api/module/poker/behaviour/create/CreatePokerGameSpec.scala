@@ -23,17 +23,17 @@ final class CreatePokerGameSpec extends PokerBehaviourSpec with ProviderSpec {
 
       val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createNew(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
-      var deck = CardStub.randomDeck()
+      var deck      = CardStub.randomDeck()
 
       shouldNotFindPokerGame(gameId)
       shouldInsertPokerGame(pokerGame)
       shouldProvideDeck(deck)
 
-      (1 to command.amountOfPlayers).foreach {_ =>
+      (1 to command.amountOfPlayers).foreach { _ =>
         val uuid = UUID.randomUUID()
         shouldProvideUUID(uuid)
 
-        val firstCard :: cardsWithoutFirstCard = deck
+        val firstCard :: cardsWithoutFirstCard           = deck
         val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
         deck = cardsWithoutFirstAndSecondCard
 

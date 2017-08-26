@@ -6,7 +6,11 @@ import scala.util.Random
 
 import com.lambtors.poker_api.module.poker.application.flop.{AddFlopCardsToTableCommandHandler, FlopCardsAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{FlopNotPossibleWhenItIsAlreadyGiven, InvalidGameId, PokerGameNotFound}
+import com.lambtors.poker_api.module.poker.domain.error.{
+  FlopNotPossibleWhenItIsAlreadyGiven,
+  InvalidGameId,
+  PokerGameNotFound
+}
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 
@@ -17,14 +21,14 @@ class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
 
   "Add flop cards to table command hander" should {
     "add three cards to a table that does not have any card at the table" in {
-      val command = AddFlopCardsToTableCommandStub.random()
-      val gameId = GameIdStub.create(UUID.fromString(command.gameId))
-      val pokerGame = PokerGameStub.createNew(gameId)
-      val deck = CardStub.randomDeck()
-      val players = (0 to pokerGame.amountOfPlayers.amount).map(_ => PlayerStub.create(gameId = gameId)).toList
+      val command      = AddFlopCardsToTableCommandStub.random()
+      val gameId       = GameIdStub.create(UUID.fromString(command.gameId))
+      val pokerGame    = PokerGameStub.createNew(gameId)
+      val deck         = CardStub.randomDeck()
+      val players      = (0 to pokerGame.amountOfPlayers.amount).map(_ => PlayerStub.create(gameId = gameId)).toList
       val playersCards = players.flatMap(player => List(player.firstCard, player.secondCard))
 
-      val availableCards = deck.filterNot(deckCard => playersCards.contains(deckCard))
+      val availableCards         = deck.filterNot(deckCard => playersCards.contains(deckCard))
       val shuffledAvailableCards = Random.shuffle(availableCards)
 
       shouldFindPokerGame(gameId, pokerGame)
@@ -37,8 +41,8 @@ class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
     }
 
     "return a failed future in case the game has flop already given" in {
-      val command = AddFlopCardsToTableCommandStub.random()
-      val gameId  = GameIdStub.create(UUID.fromString(command.gameId))
+      val command   = AddFlopCardsToTableCommandStub.random()
+      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createGameAtFlop(gameId)
 
       shouldFindPokerGame(gameId, pokerGame)

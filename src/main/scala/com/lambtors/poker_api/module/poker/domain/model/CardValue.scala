@@ -21,7 +21,7 @@ object CardValue {
   case object Cue   extends CardValue("Q")
   case object Kay   extends CardValue("K")
 
-  def all: Set[CardValue]    = sealerate.values[CardValue]
+  def all: Set[CardValue] = sealerate.values[CardValue]
 
   def randomValue(): CardValue = Random.shuffle(all).head
 }
