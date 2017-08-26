@@ -2,14 +2,13 @@ package com.lambtors.poker_api.module.poker.behaviour.flop
 
 import java.util.UUID
 
+import scala.util.Random
+
 import com.lambtors.poker_api.module.poker.application.flop.{AddFlopCardsToTableCommandHandler, FlopCardsAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{FlopNotPossibleWhenItIsAlreadyGiven, PokerGameNotFound}
-import com.lambtors.poker_api.module.poker.domain.model.InvalidGameId
+import com.lambtors.poker_api.module.poker.domain.error.{FlopNotPossibleWhenItIsAlreadyGiven, InvalidGameId, PokerGameNotFound}
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
-
-import scala.util.Random
 
 class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
   private val commandHandler = new AddFlopCardsToTableCommandHandler(

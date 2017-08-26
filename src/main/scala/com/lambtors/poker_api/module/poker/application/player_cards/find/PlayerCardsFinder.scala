@@ -2,22 +2,16 @@ package com.lambtors.poker_api.module.poker.application.player_cards.find
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import com.lambtors.poker_api.module.poker.domain.error.FakePlayerNotFound
-import com.lambtors.poker_api.module.poker.domain.model.{Card, FakePlayerId}
+import com.lambtors.poker_api.module.poker.domain.PlayerRepository
+import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
+import com.lambtors.poker_api.module.poker.domain.model.{Card, PlayerId}
 
-final class PlayerCardsFinder(fakePlayerRepository: FakePlayerRepository)(implicit ec: ExecutionContext) {
-  def find(playerId: FakePlayerId): Future[List[Card]] = fakePlayerRepository.find(playerId).flatMap { playerOption =>
+final class PlayerCardsFinder(playerRepository: PlayerRepository)(implicit ec: ExecutionContext) {
+  def find(playerId: PlayerId): Future[(Card, Card)] = playerRepository.search(playerId).flatMap { playerOption =>
     if (playerOption.isDefined) {
-      Future.successful(playerOption.get.cards)
+      Future.successful((playerOption.get.firstCard, playerOption.get.secondCard))
     } else {
-      Future.failed(FakePlayerNotFound(playerId))
+      Future.failed(PlayerNotFound(playerId))
     }
   }
 }
-
-// Use the real ones
-trait FakePlayerRepository {
-  def find(id: FakePlayerId): Future[Option[FakePlayer]]
-}
-
-case class FakePlayer(id: FakePlayerId, cards: List[Card])

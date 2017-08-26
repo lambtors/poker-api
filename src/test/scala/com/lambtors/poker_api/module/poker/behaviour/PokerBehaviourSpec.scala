@@ -48,13 +48,3 @@ trait PokerBehaviourSpec
   def shouldInsertPlayer(player: Player): Unit =
     (playerRepository.insert _).expects(player).returns(Future.successful(Unit))
 }
-
-trait MockedFakePlayerRepository extends MockFactory {
-  protected val fakePlayerRepository: FakePlayerRepository = mock[FakePlayerRepository]
-
-  def shouldFindFakePlayer(playerId: FakePlayerId, player: FakePlayer): Unit =
-    (fakePlayerRepository.find _).expects(playerId).once().returning(Future.successful(Some(player)))
-
-  def shouldNotFindFakePlayer(playerId: FakePlayerId): Unit =
-    (fakePlayerRepository.find _).expects(playerId).once().returning(Future.successful(None))
-}

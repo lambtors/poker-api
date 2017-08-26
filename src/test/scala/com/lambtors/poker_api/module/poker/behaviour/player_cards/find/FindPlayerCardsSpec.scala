@@ -8,22 +8,22 @@ import com.lambtors.poker_api.module.poker.application.player_cards.find.{
 }
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.infrastructure.stub.{
-  FakePlayerIdStub,
-  FakePlayerStub,
   FindPlayerCardsQueryStub,
-  FindPlayerCardsResponseStub
+  FindPlayerCardsResponseStub,
+  PlayerIdStub,
+  PlayerStub
 }
 
 final class FindPlayerCardsSpec extends PokerBehaviourSpec {
 
-  val queryHandler = new FindPlayerCardsQueryHandler(new PlayerCardsFinder(fakePlayerRepository))
+  val queryHandler = new FindPlayerCardsQueryHandler(new PlayerCardsFinder(playerRepository))
 
   "A FindPlayerCardsQueryHandler" should {
     "find player cards" in {
       val query = FindPlayerCardsQueryStub.random()
 
-      val player = FakePlayerStub.create(id = FakePlayerIdStub.create(UUID.fromString(query.playerId)))
-      shouldFindFakePlayer(player.id, player)
+      val player = PlayerStub.create(playerId = PlayerIdStub.create(UUID.fromString(query.playerId)))
+      shouldFindPlayer(player.playerId, player)
 
       val expectedResponse = FindPlayerCardsResponseStub.create(player.cards)
 

@@ -4,7 +4,7 @@ import com.lambtors.poker_api.module.poker.application.player_cards.find.FindPla
 import com.lambtors.poker_api.module.poker.domain.model.Card
 
 object FindPlayerCardsResponseStub {
-  def create(cards: List[Card] = ListStub.randomElements(() => CardStub.random())): FindPlayerCardsResponse =
+  def create(cards: (Card, Card) = (CardStub.random(), CardStub.random())): FindPlayerCardsResponse =
     FindPlayerCardsResponse(cards)
 
   def random(): FindPlayerCardsResponse = create()
