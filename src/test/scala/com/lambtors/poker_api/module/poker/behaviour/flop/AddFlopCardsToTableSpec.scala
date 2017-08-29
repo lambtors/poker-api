@@ -34,7 +34,7 @@ class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
       shouldShuffleGivenDeck(availableCards, shuffledAvailableCards)
       shouldUpdatePokerGame(pokerGame.copy(tableCards = shuffledAvailableCards.take(3)))
 
-      commandHandler.handle(command).futureValue
+      commandHandler.handle(command) should beSuccessfulFuture
     }
 
     "return a failed future in case the game has flop already given" in {
@@ -44,7 +44,7 @@ class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
 
       shouldFindPokerGame(gameId, pokerGame)
 
-      commandHandler.handle(command).failed.futureValue should ===(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
+      commandHandler.handle(command) should beFailedFutureWith(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
     }
 
     "return a failed future in case a game already exists with the same id" in {
@@ -53,13 +53,13 @@ class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
 
       shouldNotFindPokerGame(gameId)
 
-      commandHandler.handle(command).failed.futureValue should ===(PokerGameNotFound(gameId))
+      commandHandler.handle(command) should beFailedFutureWith(PokerGameNotFound(gameId))
     }
 
     "return a validation error on invalid game id" in {
       val command = AddFlopCardsToTableCommandStub.create(gameId = GameIdStub.invalid())
 
-      commandHandler.handle(command).failed.futureValue should ===(InvalidGameId(command.gameId))
+      commandHandler.handle(command) should haveValidationErrors(InvalidGameId(command.gameId))
     }
   }
 }

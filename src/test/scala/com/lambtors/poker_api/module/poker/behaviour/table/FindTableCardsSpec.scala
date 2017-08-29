@@ -20,7 +20,11 @@ class FindTableCardsSpec extends PokerBehaviourSpec {
 
       shouldFindPokerGame(gameId, pokerGame)
 
-      queryHandler.handle(query).futureValue should ===(tableResponse)
+      val result = queryHandler.handle(query)
+
+      result should beValid
+
+      result.map(_.futureValue should ===(tableResponse))
     }
 
     "return a failed future in case a game does not exists with the given id" in {
@@ -30,13 +34,13 @@ class FindTableCardsSpec extends PokerBehaviourSpec {
 
       shouldNotFindPokerGame(gameId)
 
-      queryHandler.handle(query).failed.futureValue should ===(PokerGameNotFound(gameId))
+      queryHandler.handle(query) should beFailedFutureWith(PokerGameNotFound(gameId))
     }
 
     "return a validation error on invalid game id" in {
       val query = FindTableCardsQueryStub.create(gameId = GameIdStub.invalid())
 
-      queryHandler.handle(query).failed.futureValue should ===(InvalidGameId(query.gameId))
+      queryHandler.handle(query) should haveValidationErrors(InvalidGameId(query.gameId))
     }
   }
 }
