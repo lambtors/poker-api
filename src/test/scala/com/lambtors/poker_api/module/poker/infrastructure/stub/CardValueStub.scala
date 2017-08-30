@@ -1,17 +1,16 @@
 package com.lambtors.poker_api.module.poker.infrastructure.stub
 
-import com.lambtors.poker_api.module.poker.domain.model.{Ace, CardValue}
+import com.lambtors.poker_api.module.poker.domain.model.CardValue
 import scala.util.Random
 
+import com.lambtors.poker_api.module.poker.domain.model.CardValue.Ace
+
 object CardValueStub {
-  def create(cardValue: String = Random.shuffle(CardValue.values).head.value): CardValue =
-    CardValue.values.find(_.value == cardValue).get
+  def random(): CardValue = Random.shuffle(CardValue.all).head
 
   def notAce(): CardValue = {
-    val cardValue = create()
+    val cardValue = random()
     if (cardValue != Ace) cardValue
     else notAce()
   }
-
-  def random(): CardValue = create()
 }

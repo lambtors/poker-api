@@ -2,21 +2,17 @@ package com.lambtors.poker_api.module.poker.behaviour.river
 
 import java.util.UUID
 
+import scala.util.Random
+
 import com.lambtors.poker_api.module.poker.application.river.{AddRiverCardToTableCommandHandler, RiverCardAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{
-  PokerGameNotFound,
-  RiverNotPossibleWhenItIsAlreadyGiven,
-  RiverNotPossibleWhenTurnIsNotGiven
+import com.lambtors.poker_api.module.poker.domain.error.{InvalidGameId,PokerGameNotFound, RiverNotPossibleWhenItIsAlreadyGiven, RiverNotPossibleWhenTurnIsNotGiven
 }
-import com.lambtors.poker_api.module.poker.domain.model.InvalidGameId
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 
-import scala.util.Random
-
-class AddRiverCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
-  private val commandHandler = new AddRiverCardToTableCommandHandler(
+final class AddRiverCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
+  val commandHandler = new AddRiverCardToTableCommandHandler(
     new RiverCardAdder(pokerGameRepository, playerRepository, deckProvider)
   )
 

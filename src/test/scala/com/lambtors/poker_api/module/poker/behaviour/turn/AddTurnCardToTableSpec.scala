@@ -2,21 +2,17 @@ package com.lambtors.poker_api.module.poker.behaviour.turn
 
 import java.util.UUID
 
+import scala.util.Random
+
 import com.lambtors.poker_api.module.poker.application.turn.{AddTurnCardToTableCommandHandler, TurnCardAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{
-  PokerGameNotFound,
-  TurnNotPossibleWhenFlopIsNotGiven,
-  TurnNotPossibleWhenItIsAlreadyGiven
+import com.lambtors.poker_api.module.poker.domain.error.{InvalidGameId,PokerGameNotFound, TurnNotPossibleWhenFlopIsNotGiven, TurnNotPossibleWhenItIsAlreadyGiven
 }
-import com.lambtors.poker_api.module.poker.domain.model.InvalidGameId
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 
-import scala.util.Random
-
 class AddTurnCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
-  private val commandHandler = new AddTurnCardToTableCommandHandler(
+  val commandHandler = new AddTurnCardToTableCommandHandler(
     new TurnCardAdder(pokerGameRepository, playerRepository, deckProvider)
   )
 

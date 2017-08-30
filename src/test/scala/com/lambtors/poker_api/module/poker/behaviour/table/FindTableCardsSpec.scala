@@ -4,8 +4,7 @@ import java.util.UUID
 
 import com.lambtors.poker_api.module.poker.application.table.find.{FindTableCardsQueryHandler, TableCardsFinder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.PokerGameNotFound
-import com.lambtors.poker_api.module.poker.domain.model.InvalidGameId
+import com.lambtors.poker_api.module.poker.domain.error.{InvalidGameId, PokerGameNotFound}
 import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   FindTableCardsQueryStub,
   GameIdStub,

@@ -15,6 +15,7 @@ trait PokerBehaviourSpec
     with MockFactory
     with OneInstancePerTest
     with ScalaFutures {
+
   implicit val ec = ExecutionContext.global
 
   protected val pokerGameRepository: PokerGameRepository = mock[PokerGameRepository]
