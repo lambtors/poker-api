@@ -15,10 +15,11 @@ trait PokerBehaviourSpec
     with MockFactory
     with OneInstancePerTest
     with ScalaFutures {
+
   implicit val ec = ExecutionContext.global
 
   protected val pokerGameRepository: PokerGameRepository = mock[PokerGameRepository]
-  protected val playerRepository: PlayerRepository = mock[PlayerRepository]
+  protected val playerRepository: PlayerRepository       = mock[PlayerRepository]
 
   def shouldFindPokerGame(gameId: GameId, pokerGame: PokerGame): Unit =
     (pokerGameRepository.search _).expects(gameId).once().returning(Future.successful(Some(pokerGame)))

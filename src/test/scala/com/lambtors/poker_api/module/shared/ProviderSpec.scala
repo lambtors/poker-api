@@ -10,7 +10,7 @@ trait ProviderSpec extends MockFactory {
   protected val uuidProvider = mock[UUIDProvider]
   protected val deckProvider = mock[DeckProvider]
 
-  def shouldProvideUUID(uuid: UUID): Unit = (uuidProvider.provide _).expects().once().returns(uuid)
+  def shouldProvideUUID(uuid: UUID): Unit       = (uuidProvider.provide _).expects().once().returns(uuid)
   def shouldProvideDeck(deck: List[Card]): Unit = (deckProvider.provide _).expects().once().returns(deck)
   def shouldShuffleGivenDeck(orderedDeck: List[Card], shuffledDeck: List[Card]): Unit =
     (deckProvider.shuffleGivenDeck _).expects(orderedDeck).once().returns(shuffledDeck)
