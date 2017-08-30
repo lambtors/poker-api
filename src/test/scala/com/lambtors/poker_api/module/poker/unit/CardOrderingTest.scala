@@ -1,6 +1,7 @@
 package com.lambtors.poker_api.module.poker.unit
 
 import com.lambtors.poker_api.module.poker.domain.model._
+import com.lambtors.poker_api.module.poker.domain.model.CardValue.{Ace, Kay, Three, Two}
 import com.lambtors.poker_api.module.poker.infrastructure.stub.CardStub
 import org.scalatest.{Matchers, WordSpec}
 

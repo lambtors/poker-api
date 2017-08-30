@@ -6,7 +6,11 @@ import scala.util.Random
 
 import com.lambtors.poker_api.module.poker.application.turn.{AddTurnCardToTableCommandHandler, TurnCardAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{InvalidGameId,PokerGameNotFound, TurnNotPossibleWhenFlopIsNotGiven, TurnNotPossibleWhenItIsAlreadyGiven
+import com.lambtors.poker_api.module.poker.domain.error.{
+  InvalidGameId,
+  PokerGameNotFound,
+  TurnNotPossibleWhenFlopIsNotGiven,
+  TurnNotPossibleWhenItIsAlreadyGiven
 }
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec

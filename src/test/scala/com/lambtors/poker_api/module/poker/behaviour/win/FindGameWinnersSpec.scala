@@ -6,8 +6,13 @@ import scala.util.Random
 
 import com.lambtors.poker_api.module.poker.application.win.{FindGameWinnersQueryHandler, GameWinnersFinder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{GameCannotEndWhenRiverIsNotDealt, PokerGameNotFound}
-import com.lambtors.poker_api.module.poker.domain.model.{Ace, Card, InvalidGameId}
+import com.lambtors.poker_api.module.poker.domain.error.{
+  GameCannotEndWhenRiverIsNotDealt,
+  InvalidGameId,
+  PokerGameNotFound
+}
+import com.lambtors.poker_api.module.poker.domain.model.Card
+import com.lambtors.poker_api.module.poker.domain.model.CardValue.Ace
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 
 final class FindGameWinnersSpec extends PokerBehaviourSpec {
