@@ -25,9 +25,7 @@ class FindTableCardsSpec extends PokerBehaviourSpec {
       shouldFindPokerGame(gameId, pokerGame)
 
       val result = queryHandler.handle(query)
-
       result should beValid
-
       result.map(_.futureValue should ===(tableResponse))
     }
 

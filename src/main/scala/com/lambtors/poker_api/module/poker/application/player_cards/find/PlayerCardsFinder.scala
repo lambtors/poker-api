@@ -7,11 +7,11 @@ import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
 import com.lambtors.poker_api.module.poker.domain.model.{Card, PlayerId}
 
 final class PlayerCardsFinder(playerRepository: PlayerRepository)(implicit ec: ExecutionContext) {
-  def find(playerId: PlayerId): Future[(Card, Card)] = playerRepository.search(playerId).flatMap { playerOption =>
-    if (playerOption.isDefined) {
-      Future.successful((playerOption.get.firstCard, playerOption.get.secondCard))
-    } else {
-      Future.failed(PlayerNotFound(playerId))
-    }
-  }
+  def find(playerId: PlayerId): Future[(Card, Card)] =
+    playerRepository
+      .search(playerId)
+      .flatMap(
+        _.fold[Future[(Card, Card)]](Future.failed(PlayerNotFound(playerId)))(player =>
+          Future.successful((player.firstCard, player.secondCard)))
+      )
 }
