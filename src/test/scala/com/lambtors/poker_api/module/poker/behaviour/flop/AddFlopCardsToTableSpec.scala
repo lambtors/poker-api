@@ -15,7 +15,7 @@ import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 
 class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
-  private val commandHandler = new AddFlopCardsToTableCommandHandler(
+  val commandHandler = new AddFlopCardsToTableCommandHandler(
     new FlopCardsAdder(pokerGameRepository, playerRepository, deckProvider)
   )
 

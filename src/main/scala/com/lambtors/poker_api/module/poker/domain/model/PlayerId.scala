@@ -3,6 +3,8 @@ package com.lambtors.poker_api.module.poker.domain.model
 import java.util.UUID
 
 import cats.data.Validated.{Invalid, Valid}
+import com.lambtors.poker_api.module.poker.domain.error.InvalidPlayerId
+import com.lambtors.poker_api.module.poker.domain.model.validator.UuidValidator
 import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 
 final case class PlayerId(playerId: UUID)

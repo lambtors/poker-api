@@ -5,8 +5,9 @@ import java.util.UUID
 import com.lambtors.poker_api.module.poker.domain.model.Card
 import com.lambtors.poker_api.module.shared.domain.{DeckProvider, UUIDProvider}
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.OneInstancePerTest
 
-trait ProviderSpec extends MockFactory {
+trait ProviderSpec extends MockFactory with OneInstancePerTest {
   protected val uuidProvider = mock[UUIDProvider]
   protected val deckProvider = mock[DeckProvider]
 
