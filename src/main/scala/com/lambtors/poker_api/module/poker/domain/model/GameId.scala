@@ -2,7 +2,6 @@ package com.lambtors.poker_api.module.poker.domain.model
 
 import java.util.UUID
 
-
 import com.lambtors.poker_api.module.poker.domain.error.InvalidGameId
 import com.lambtors.poker_api.module.poker.domain.model.validator.UuidValidator
 

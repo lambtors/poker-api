@@ -13,7 +13,8 @@ import org.scalatest.matchers.{Matcher, MatchResult}
 
 trait ValidationMatchers extends Matchers with ScalaFutures {
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = 5.seconds, interval = 30.milliseconds)
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = 5.seconds, interval = 30.milliseconds)
 
   def beValid: Matcher[Validation[_]] = Matcher { (validated: Validation[_]) =>
     MatchResult(

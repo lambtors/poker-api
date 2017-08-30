@@ -15,30 +15,32 @@ final class TurnCardAdder(
     playerRepository: PlayerRepository,
     deckProvider: DeckProvider
 )(implicit ec: ExecutionContext) {
-  def add(gameId: GameId): Future[Unit] = repository.search(gameId)
-    .flatMap(_.fold(Future.failed[Unit]( PokerGameNotFound(gameId)
-    )) { game =>
+  def add(gameId: GameId): Future[Unit] =
+    repository
+      .search(gameId)
+      .flatMap(_.fold(Future.failed[Unit](PokerGameNotFound(gameId))) { game =>
+        if (game.tableCards.length > 3) {
+          Future.failed[Unit](TurnNotPossibleWhenItIsAlreadyGiven(gameId))
+        } else if (game.tableCards.length < 3) {
+          Future.failed[Unit](TurnNotPossibleWhenFlopIsNotGiven(gameId))
+        } else {
 
-      if (game.tableCards.length > 3) {
-        Future.failed[Unit]( TurnNotPossibleWhenItIsAlreadyGiven(gameId))
-      } else if (game.tableCards.length < 3) {
-        Future.failed[Unit]( TurnNotPossibleWhenFlopIsNotGiven(gameId))
-      } else {
-
-
-        playerRepository.search(gameId).flatMap(
-          players =>
-
-
-            repository.update(
-              game.copy(tableCards = game.tableCards ++ deckProvider.shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards)).take(1)
+          playerRepository
+            .search(gameId)
+            .flatMap(
+              players =>
+                repository.update(
+                  game.copy(
+                    tableCards = game.tableCards ++ deckProvider
+                      .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
+                      .take(1))
+              )
             )
-          )
-        )
-      }
-    })
+        }
+      })
   private def availableCards(cardsInGame: List[Card]) =
     deckProvider.provide().filterNot(card => cardsInGame.contains(card))
 
-  private def playersCards(players: List[Player]) = players.flatMap(player => List(player.firstCard, player.secondCard))
+  private def playersCards(players: List[Player]) =
+    players.flatMap(player => List(player.firstCard, player.secondCard))
 }

@@ -7,4 +7,3 @@ import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 trait CommandHandler[C <: Command] {
   def handle(command: C): Validation[Future[Unit]]
 }
-
