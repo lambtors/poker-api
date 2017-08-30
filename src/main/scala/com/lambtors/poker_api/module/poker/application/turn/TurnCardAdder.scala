@@ -20,9 +20,9 @@ final class TurnCardAdder(
       .search(gameId)
       .flatMap(_.fold(Future.failed[Unit](PokerGameNotFound(gameId))) { game =>
         if (game.tableCards.length > 3) {
-          throw TurnNotPossibleWhenItIsAlreadyGiven(gameId)
+          Future.failed[Unit](TurnNotPossibleWhenItIsAlreadyGiven(gameId))
         } else if (game.tableCards.length < 3) {
-          throw TurnNotPossibleWhenFlopIsNotGiven(gameId)
+          Future.failed[Unit](TurnNotPossibleWhenFlopIsNotGiven(gameId))
         } else {
           playerRepository
             .search(gameId)
