@@ -1,4 +1,4 @@
-package com.lambtors.poker_api.module.poker.domain.model
+package com.lambtors.poker_api.module.poker.domain.error
 
 sealed trait PokerValidationError extends Throwable
 

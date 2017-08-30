@@ -6,7 +6,9 @@ import scala.concurrent.Future
 
 import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 
-class AddTurnCardToTableCommandHandler(adder: TurnCardAdder) extends CommandHandler[AddTurnCardToTableCommand] {
+class AddTurnCardToTableCommandHandler(adder: TurnCardAdder)
+  extends CommandHandler[AddTurnCardToTableCommand] {
   override def handle(command: AddTurnCardToTableCommand): Validation[Future[Unit]] =
-    GameId.fromString(command.gameId).map(adder.add)
+
+   GameId.fromString(command.gameId).map(adder.add)
 }

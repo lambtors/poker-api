@@ -1,10 +1,9 @@
 package com.lambtors.poker_api.module.poker.application.flop
 
 import scala.concurrent.{ExecutionContext, Future}
-
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.error.{FlopNotPossibleWhenItIsAlreadyGiven, PokerGameNotFound}
-import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player}
+import com.lambtors.poker_api.module.poker.domain.model.GameId
 import com.lambtors.poker_api.module.shared.domain.DeckProvider
 
 final class FlopCardsAdder(
@@ -15,17 +14,29 @@ final class FlopCardsAdder(
   def add(gameId: GameId): Future[Unit] =
     repository
       .search(gameId)
-      .flatMap(_.fold[Future[Unit]](Future.failed(PokerGameNotFound(gameId)))(game =>
-        if (game.tableCards.nonEmpty) Future.failed(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
-        else {
-          playerRepository
-            .search(gameId)
-            .flatMap(players =>
-              repository.update(game.copy(tableCards = deckProvider.shuffleGivenDeck(availableCards(players)).take(3))))
-      }))
+      .map(
+        gameOpt =>
+          if (gameOpt.isEmpty) {
+            throw PokerGameNotFound(gameId)
+          } else {
+            val game = gameOpt.get
+            if (game.tableCards.nonEmpty) {
+              throw FlopNotPossibleWhenItIsAlreadyGiven(gameId)
+            } else {
+              val cards = deckProvider.provide()
 
-  private def availableCards(players: List[Player]) =
-    deckProvider.provide().filterNot(card => playerCards(players).contains(card))
+              playerRepository
+                .search(gameId)
+                .flatMap(
+                  players => {
+                    val playersCards = players.flatMap(player => List(player.firstCard, player.secondCard))
 
-  private def playerCards(players: List[Player]) = players.flatMap(player => List(player.firstCard, player.secondCard))
+                    val availableCards = cards.filterNot(card => playersCards.contains(card))
+
+                    repository.update(game.copy(tableCards = deckProvider.shuffleGivenDeck(availableCards).take(3)))
+                  }
+                )
+            }
+        }
+      )
 }
