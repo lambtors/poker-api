@@ -1,13 +1,13 @@
 package com.lambtors.poker_api.module.poker.application.flop
 
 import com.lambtors.poker_api.infrastructure.command_bus.CommandHandler
+import scala.concurrent.Future
 
-import scala.concurrent.{ExecutionContext, Future}
 import com.lambtors.poker_api.module.poker.domain.model.GameId
+import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 
-final class AddFlopCardsToTableCommandHandler(adder: FlopCardsAdder)(implicit ec: ExecutionContext)
+final class AddFlopCardsToTableCommandHandler(adder: FlopCardsAdder)
   extends CommandHandler[AddFlopCardsToTableCommand] {
-  def handle(command: AddFlopCardsToTableCommand): Future[Unit] = validate(command).flatMap(adder.add)
-
-  private def validate(command: AddFlopCardsToTableCommand) = GameId.fromString(command.gameId)
+  def handle(command: AddFlopCardsToTableCommand): Validation[Future[Unit]] =
+    GameId.fromString(command.gameId).map(adder.add)
 }

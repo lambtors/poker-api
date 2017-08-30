@@ -1,13 +1,14 @@
 package com.lambtors.poker_api.module.poker.domain.model
 
-import scala.concurrent.Future
+import cats.data.Validated.{Invalid, Valid}
+import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 
 final case class AmountOfPlayers(amount: Int)
 
 object AmountOfPlayers {
-  def fromString(possibleAmountOfPlayers: Int): Future[AmountOfPlayers] =
-    if (isValid(possibleAmountOfPlayers)) Future.successful(AmountOfPlayers(possibleAmountOfPlayers))
-    else Future.failed(InvalidAmountOfPlayers(possibleAmountOfPlayers))
+  def fromString(possibleAmountOfPlayers: Int): Validation[AmountOfPlayers] =
+    if (isValid(possibleAmountOfPlayers)) Valid(AmountOfPlayers(possibleAmountOfPlayers))
+    else Invalid(InvalidAmountOfPlayers(possibleAmountOfPlayers)).toValidatedNel
 
   private def isValid(possibleAmountOfPlayers: Int): Boolean =
     possibleAmountOfPlayers > 1 && possibleAmountOfPlayers <= 9

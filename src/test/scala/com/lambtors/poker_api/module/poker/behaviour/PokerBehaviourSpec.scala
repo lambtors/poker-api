@@ -1,24 +1,24 @@
 package com.lambtors.poker_api.module.poker.behaviour
 
 import scala.concurrent.{ExecutionContext, Future}
+
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player, PlayerId, PokerGame}
+import com.lambtors.poker_api.module.shared.ValidationMatchers
 import org.scalactic.TypeCheckedTripleEquals
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{Matchers, OneInstancePerTest, WordSpec}
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{OneInstancePerTest, WordSpec}
 
 trait PokerBehaviourSpec
     extends WordSpec
-    with Matchers
     with TypeCheckedTripleEquals
     with MockFactory
     with OneInstancePerTest
-    with ScalaFutures {
+    with ValidationMatchers {
   implicit val ec = ExecutionContext.global
 
   protected val pokerGameRepository: PokerGameRepository = mock[PokerGameRepository]
-  protected val playerRepository: PlayerRepository = mock[PlayerRepository]
+  protected val playerRepository: PlayerRepository       = mock[PlayerRepository]
 
   def shouldFindPokerGame(gameId: GameId, pokerGame: PokerGame): Unit =
     (pokerGameRepository.search _).expects(gameId).once().returning(Future.successful(Some(pokerGame)))
