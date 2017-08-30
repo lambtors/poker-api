@@ -4,7 +4,11 @@ import java.util.UUID
 
 import com.lambtors.poker_api.module.poker.application.river.{AddRiverCardToTableCommandHandler, RiverCardAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{PokerGameNotFound, RiverNotPossibleWhenItIsAlreadyGiven, RiverNotPossibleWhenTurnIsNotGiven}
+import com.lambtors.poker_api.module.poker.domain.error.{
+  PokerGameNotFound,
+  RiverNotPossibleWhenItIsAlreadyGiven,
+  RiverNotPossibleWhenTurnIsNotGiven
+}
 import com.lambtors.poker_api.module.poker.domain.model.InvalidGameId
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
@@ -18,15 +22,15 @@ class AddRiverCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
 
   "Add river card to table spec" should {
     "add a new card to table when turn is already given" in {
-      val command = AddRiverCardToTableCommandStub.random()
-      val gameId = GameIdStub.create(UUID.fromString(command.gameId))
-      val pokerGame = PokerGameStub.createGameAtTurn(gameId)
-      val deck = CardStub.randomDeck()
-      val players = (0 to pokerGame.amountOfPlayers.amount).map(_ => PlayerStub.create(gameId = gameId)).toList
-      val playersCards = players.flatMap(player => List(player.firstCard, player.secondCard))
+      val command                    = AddRiverCardToTableCommandStub.random()
+      val gameId                     = GameIdStub.create(UUID.fromString(command.gameId))
+      val pokerGame                  = PokerGameStub.createGameAtTurn(gameId)
+      val deck                       = CardStub.randomDeck()
+      val players                    = (0 to pokerGame.amountOfPlayers.amount).map(_ => PlayerStub.create(gameId = gameId)).toList
+      val playersCards               = players.flatMap(player => List(player.firstCard, player.secondCard))
       val playersCardsWithTableCards = playersCards ++ pokerGame.tableCards
 
-      val availableCards = deck.filterNot(deckCard => playersCardsWithTableCards.contains(deckCard))
+      val availableCards         = deck.filterNot(deckCard => playersCardsWithTableCards.contains(deckCard))
       val shuffledAvailableCards = Random.shuffle(availableCards)
 
       shouldFindPokerGame(gameId, pokerGame)
@@ -39,8 +43,8 @@ class AddRiverCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
     }
 
     "return a failed future in case the game has river already given" in {
-      val command = AddRiverCardToTableCommandStub.random()
-      val gameId  = GameIdStub.create(UUID.fromString(command.gameId))
+      val command   = AddRiverCardToTableCommandStub.random()
+      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createGameAtRiver(gameId)
 
       shouldFindPokerGame(gameId, pokerGame)
@@ -49,8 +53,8 @@ class AddRiverCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
     }
 
     "return a failed future in case the turn is not given yet" in {
-      val command = AddRiverCardToTableCommandStub.random()
-      val gameId  = GameIdStub.create(UUID.fromString(command.gameId))
+      val command   = AddRiverCardToTableCommandStub.random()
+      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createGameAtFlop(gameId)
 
       shouldFindPokerGame(gameId, pokerGame)

@@ -5,7 +5,7 @@ import com.lambtors.poker_api.module.poker.domain.model.{GameId, TableCardsRespo
 import scala.concurrent.{ExecutionContext, Future}
 
 final class FindTableCardsQueryHandler(tableCardsFinder: TableCardsFinder)(implicit ec: ExecutionContext)
-  extends QueryHandler[FindTableCardsQuery, TableCardsResponse] {
+    extends QueryHandler[FindTableCardsQuery, TableCardsResponse] {
   override def handle(query: FindTableCardsQuery): Future[TableCardsResponse] =
     validate(query).flatMap(tableCardsFinder.find)
 
