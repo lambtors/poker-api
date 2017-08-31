@@ -22,13 +22,12 @@ final class PokerGameCreator(
           .map(_ => {
             var cards = deckProvider.provide()
 
-          (1 to amountOfPlayers.amount).foreach(_ => {
-            val firstCard :: cardsWithoutFirstCard = cards
-            val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
-            cards = cardsWithoutFirstAndSecondCard
-            playerRepository.insert(Player(PlayerId(uUIDProvider.provide()), gameId, firstCard, secondCard))
+            (1 to amountOfPlayers.amount).foreach(_ => {
+              val firstCard :: cardsWithoutFirstCard           = cards
+              val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
+              cards = cardsWithoutFirstAndSecondCard
+              playerRepository.insert(Player(PlayerId(uUIDProvider.provide()), gameId, firstCard, secondCard))
+            })
           })
-        })
-      }
-    (_ => Future.failed[Unit](PokerGameAlreadyExisting(gameId))))
+      }(_ => Future.failed[Unit](PokerGameAlreadyExisting(gameId))))
 }

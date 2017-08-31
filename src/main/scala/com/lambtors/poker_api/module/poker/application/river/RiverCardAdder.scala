@@ -40,5 +40,6 @@ class RiverCardAdder(
   private def availableCards(cardsInGame: List[Card]) =
     deckProvider.provide().filterNot(card => cardsInGame.contains(card))
 
-  private def playersCards(players: List[Player]) = players.flatMap(player => List(player.firstCard, player.secondCard))
+  private def playersCards(players: List[Player]) =
+    players.flatMap(player => List(player.firstCard, player.secondCard))
 }
