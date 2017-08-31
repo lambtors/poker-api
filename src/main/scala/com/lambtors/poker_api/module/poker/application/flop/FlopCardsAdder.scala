@@ -8,8 +8,8 @@ import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player}
 import com.lambtors.poker_api.module.shared.domain.DeckProvider
 
 final class FlopCardsAdder(
-    repository: PokerGameRepository,
-    playerRepository: PlayerRepository,
+    repository: PokerGameRepository[Future],
+    playerRepository: PlayerRepository[Future],
     deckProvider: DeckProvider
 )(implicit ec: ExecutionContext) {
   def add(gameId: GameId): Future[Unit] =

@@ -11,8 +11,8 @@ import com.lambtors.poker_api.module.shared.domain.DeckProvider
 import scala.concurrent.{ExecutionContext, Future}
 
 final class TurnCardAdder(
-    repository: PokerGameRepository,
-    playerRepository: PlayerRepository,
+    repository: PokerGameRepository[Future],
+    playerRepository: PlayerRepository[Future],
     deckProvider: DeckProvider
 )(implicit ec: ExecutionContext) {
   def add(gameId: GameId): Future[Unit] =
@@ -24,7 +24,6 @@ final class TurnCardAdder(
         } else if (game.tableCards.length < 3) {
           Future.failed[Unit](TurnNotPossibleWhenFlopIsNotGiven(gameId))
         } else {
-
           playerRepository
             .search(gameId)
             .flatMap(

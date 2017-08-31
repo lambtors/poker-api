@@ -6,7 +6,7 @@ import com.lambtors.poker_api.module.poker.domain.PlayerRepository
 import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
 import com.lambtors.poker_api.module.poker.domain.model.{Card, PlayerId}
 
-final class PlayerCardsFinder(playerRepository: PlayerRepository)(implicit ec: ExecutionContext) {
+final class PlayerCardsFinder(playerRepository: PlayerRepository[Future])(implicit ec: ExecutionContext) {
   def find(playerId: PlayerId): Future[(Card, Card)] =
     playerRepository
       .search(playerId)

@@ -11,8 +11,8 @@ import com.lambtors.poker_api.module.shared.domain.DeckProvider
 import scala.concurrent.{ExecutionContext, Future}
 
 class RiverCardAdder(
-    repository: PokerGameRepository,
-    playerRepository: PlayerRepository,
+    repository: PokerGameRepository[Future],
+    playerRepository: PlayerRepository[Future],
     deckProvider: DeckProvider
 )(implicit ec: ExecutionContext) {
   def add(gameId: GameId): Future[Unit] =
