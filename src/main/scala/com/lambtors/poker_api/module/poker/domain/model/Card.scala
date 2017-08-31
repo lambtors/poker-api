@@ -11,3 +11,11 @@ object Card {
 
   def randomCard: Card = Card(CardSuit.randomSuit, CardValue.randomValue)
 }
+
+object CardOrdering {
+  val highestValueToLowest = new Ordering[Card] {
+    override def compare(x: Card, y: Card): Int = {
+      CardValueOrdering.highestValueToLowest.compare(x.cardValue, y.cardValue)
+    }
+  }
+}

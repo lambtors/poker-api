@@ -10,10 +10,10 @@ object Configuration {
       "-deprecation", // Warnings deprecation
       "-feature", // Advise features
       "-unchecked", // More warnings. Strict
-      "-Xlint", // More warnings when compiling
-      "-Xfatal-warnings", // Warnings became errors
+      "-Xlint",     // More warnings when compiling
+//      "-Xfatal-warnings", // Warnings became errors
       "-Ywarn-dead-code",
-//      "-Ywarn-unused",
+      "-Ywarn-unused",
       "-Ywarn-unused-import",
       "-Xcheckinit" // Check against early initialization
     ),
