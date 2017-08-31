@@ -1,19 +1,20 @@
 package com.lambtors.poker_api.module.shared
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 import scala.util.Try
 
 import cats.data.Validated.{Invalid, Valid}
-import com.lambtors.poker_api.module.poker.domain.model.PokerValidationError
+import com.lambtors.poker_api.module.poker.domain.error.PokerValidationError
 import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.matchers.{Matcher, MatchResult}
 
 trait ValidationMatchers extends Matchers with ScalaFutures {
 
-  override implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = 5.seconds, interval = 30.milliseconds)
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = 5.seconds, interval = 30.milliseconds)
 
   def beValid: Matcher[Validation[_]] = Matcher { (validated: Validation[_]) =>
     MatchResult(

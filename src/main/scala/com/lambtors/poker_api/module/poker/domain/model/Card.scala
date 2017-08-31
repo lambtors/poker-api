@@ -5,7 +5,7 @@ import com.lambtors.poker_api.module.shared.syntax.Syntax._
 final case class Card(cardSuit: CardSuit, cardValue: CardValue)
 
 object Card {
-  val allCards: List[Card] = (CardSuit.values cross CardValue.values).toList.map {
+  val allCards: List[Card] = (CardSuit.all cross CardValue.all).toList.map {
     case (cardSuit, cardValue) => Card(cardSuit, cardValue)
   }
 

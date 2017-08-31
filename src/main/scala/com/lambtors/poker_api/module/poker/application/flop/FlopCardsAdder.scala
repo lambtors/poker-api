@@ -15,14 +15,16 @@ final class FlopCardsAdder(
   def add(gameId: GameId): Future[Unit] =
     repository
       .search(gameId)
-      .flatMap(_.fold[Future[Unit]](Future.failed(PokerGameNotFound(gameId)))(game =>
-        if (game.tableCards.nonEmpty) Future.failed(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
-        else {
-          playerRepository
-            .search(gameId)
-            .flatMap(players =>
-              repository.update(game.copy(tableCards = deckProvider.shuffleGivenDeck(availableCards(players)).take(3))))
-      }))
+      .flatMap(
+        _.fold[Future[Unit]](Future.failed(PokerGameNotFound(gameId)))(game =>
+          if (game.tableCards.nonEmpty) Future.failed(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
+          else {
+            playerRepository
+              .search(gameId)
+              .flatMap(players =>
+                repository.update(
+                  game.copy(tableCards = deckProvider.shuffleGivenDeck(availableCards(players)).take(3))))
+        }))
 
   private def availableCards(players: List[Player]) =
     deckProvider.provide().filterNot(card => playerCards(players).contains(card))

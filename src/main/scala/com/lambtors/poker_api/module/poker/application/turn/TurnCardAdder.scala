@@ -24,6 +24,7 @@ final class TurnCardAdder(
         } else if (game.tableCards.length < 3) {
           Future.failed[Unit](TurnNotPossibleWhenFlopIsNotGiven(gameId))
         } else {
+
           playerRepository
             .search(gameId)
             .flatMap(
@@ -32,15 +33,14 @@ final class TurnCardAdder(
                   game.copy(
                     tableCards = game.tableCards ++ deckProvider
                       .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
-                      .take(1)
-                  )
+                      .take(1))
               )
             )
         }
       })
-
   private def availableCards(cardsInGame: List[Card]) =
     deckProvider.provide().filterNot(card => cardsInGame.contains(card))
 
-  private def playersCards(players: List[Player]) = players.flatMap(player => List(player.firstCard, player.secondCard))
+  private def playersCards(players: List[Player]) =
+    players.flatMap(player => List(player.firstCard, player.secondCard))
 }

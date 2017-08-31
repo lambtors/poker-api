@@ -26,7 +26,6 @@ final class PokerGameCreator(
               val firstCard :: cardsWithoutFirstCard           = cards
               val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
               cards = cardsWithoutFirstAndSecondCard
-
               playerRepository.insert(Player(PlayerId(uUIDProvider.provide()), gameId, firstCard, secondCard))
             })
           })

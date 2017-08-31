@@ -2,31 +2,35 @@ package com.lambtors.poker_api.module.poker.behaviour.turn
 
 import java.util.UUID
 
+import scala.util.Random
+
 import com.lambtors.poker_api.module.poker.application.turn.{AddTurnCardToTableCommandHandler, TurnCardAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{PokerGameNotFound, TurnNotPossibleWhenFlopIsNotGiven, TurnNotPossibleWhenItIsAlreadyGiven}
-import com.lambtors.poker_api.module.poker.domain.model.InvalidGameId
+import com.lambtors.poker_api.module.poker.domain.error.{
+  InvalidGameId,
+  PokerGameNotFound,
+  TurnNotPossibleWhenFlopIsNotGiven,
+  TurnNotPossibleWhenItIsAlreadyGiven
+}
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 
-import scala.util.Random
-
 class AddTurnCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
-  private val commandHandler = new AddTurnCardToTableCommandHandler(
+  val commandHandler = new AddTurnCardToTableCommandHandler(
     new TurnCardAdder(pokerGameRepository, playerRepository, deckProvider)
   )
 
   "Add turn card to table command handler" should {
     "add a new card to table when flop is already given" in {
-      val command = AddTurnCardToTableCommandStub.random()
-      val gameId = GameIdStub.create(UUID.fromString(command.gameId))
-      val pokerGame = PokerGameStub.createGameAtFlop(gameId)
-      val deck = CardStub.randomDeck()
-      val players = (0 to pokerGame.amountOfPlayers.amount).map(_ => PlayerStub.create(gameId = gameId)).toList
-      val playersCards = players.flatMap(player => List(player.firstCard, player.secondCard))
+      val command                    = AddTurnCardToTableCommandStub.random()
+      val gameId                     = GameIdStub.create(UUID.fromString(command.gameId))
+      val pokerGame                  = PokerGameStub.createGameAtFlop(gameId)
+      val deck                       = CardStub.randomDeck()
+      val players                    = (0 to pokerGame.amountOfPlayers.amount).map(_ => PlayerStub.create(gameId = gameId)).toList
+      val playersCards               = players.flatMap(player => List(player.firstCard, player.secondCard))
       val playersCardsWithTableCards = playersCards ++ pokerGame.tableCards
 
-      val availableCards = deck.filterNot(deckCard => playersCardsWithTableCards.contains(deckCard))
+      val availableCards         = deck.filterNot(deckCard => playersCardsWithTableCards.contains(deckCard))
       val shuffledAvailableCards = Random.shuffle(availableCards)
 
       shouldFindPokerGame(gameId, pokerGame)
@@ -39,8 +43,8 @@ class AddTurnCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
     }
 
     "return a failed future in case the game has turn already given" in {
-      val command = AddTurnCardToTableCommandStub.random()
-      val gameId  = GameIdStub.create(UUID.fromString(command.gameId))
+      val command   = AddTurnCardToTableCommandStub.random()
+      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createGameAtTurn(gameId)
 
       shouldFindPokerGame(gameId, pokerGame)
@@ -49,8 +53,8 @@ class AddTurnCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
     }
 
     "return a failed future in case the flop is not given yet" in {
-      val command = AddTurnCardToTableCommandStub.random()
-      val gameId  = GameIdStub.create(UUID.fromString(command.gameId))
+      val command   = AddTurnCardToTableCommandStub.random()
+      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createNew(gameId)
 
       shouldFindPokerGame(gameId, pokerGame)

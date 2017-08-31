@@ -23,25 +23,31 @@ object PokerGameStub {
     create(gameId, amountOfPlayers, (1 to 4).map(_ => CardStub.random()).toList)
 
   def createGameAtRiver(gameId: GameId = GameIdStub.random(),
-                       amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
+                        amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
     create(gameId, amountOfPlayers, (1 to 5).map(_ => CardStub.random()).toList)
 
   def createGameNotAtFlop(gameId: GameId = GameIdStub.random(),
                           amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
     create(
-      gameId, amountOfPlayers, (0 to randomNumberOfCardsExceptOne(2)).filter(_ != 2).map(_ => CardStub.random()).toList
+      gameId,
+      amountOfPlayers,
+      (0 to randomNumberOfCardsExceptOne(2)).filter(_ != 2).map(_ => CardStub.random()).toList
     )
 
   def createGameNotAtTurn(gameId: GameId = GameIdStub.random(),
                           amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
     create(
-      gameId, amountOfPlayers, (0 to randomNumberOfCardsExceptOne(2)).filter(_ != 3).map(_ => CardStub.random()).toList
+      gameId,
+      amountOfPlayers,
+      (0 to randomNumberOfCardsExceptOne(2)).filter(_ != 3).map(_ => CardStub.random()).toList
     )
 
   def createGameNotAtRiver(gameId: GameId = GameIdStub.random(),
-                          amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
+                           amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
     create(
-      gameId, amountOfPlayers, (0 to randomNumberOfCardsExceptOne(2)).filter(_ != 4).map(_ => CardStub.random()).toList
+      gameId,
+      amountOfPlayers,
+      (0 to randomNumberOfCardsExceptOne(2)).filter(_ != 4).map(_ => CardStub.random()).toList
     )
 
   def random: PokerGame = create()
