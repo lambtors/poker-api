@@ -1,28 +1,31 @@
 package com.lambtors.poker_api.module.poker.application.river
 
+import cats.implicits._
+import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.error.{
   PokerGameNotFound,
   RiverNotPossibleWhenItIsAlreadyGiven,
   RiverNotPossibleWhenTurnIsNotGiven
 }
-import com.lambtors.poker_api.module.poker.domain.model.{Card, GameId, Player}
-import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
+import com.lambtors.poker_api.module.poker.domain.model.{Card, GameId, Player, PokerGame}
 import com.lambtors.poker_api.module.shared.domain.DeckProvider
-import scala.concurrent.{ExecutionContext, Future}
+import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.MonadErrorThrowable
 
-class RiverCardAdder(
-    repository: PokerGameRepository[Future],
-    playerRepository: PlayerRepository[Future],
+class RiverCardAdder[P[_]: MonadErrorThrowable](
+    repository: PokerGameRepository[P],
+    playerRepository: PlayerRepository[P],
     deckProvider: DeckProvider
-)(implicit ec: ExecutionContext) {
-  def add(gameId: GameId): Future[Unit] =
+) {
+  def add(gameId: GameId): P[Unit] =
     repository
       .search(gameId)
       .flatMap(
-        _.fold[Future[Unit]](Future.failed(PokerGameNotFound(gameId)))(
-          game =>
-            if (game.tableCards.length > 4) Future.failed(RiverNotPossibleWhenItIsAlreadyGiven(gameId))
-            else if (game.tableCards.length < 4) Future.failed(RiverNotPossibleWhenTurnIsNotGiven(gameId))
+        _.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(
+          (game: PokerGame) =>
+            if (game.tableCards.length > 4)
+              MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenItIsAlreadyGiven(gameId))
+            else if (game.tableCards.length < 4)
+              MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenTurnIsNotGiven(gameId))
             else {
               playerRepository
                 .search(gameId)

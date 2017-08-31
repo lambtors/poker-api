@@ -1,28 +1,29 @@
 package com.lambtors.poker_api.module.poker.application.turn
 
+import cats.implicits._
+import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.error.{
   PokerGameNotFound,
   TurnNotPossibleWhenFlopIsNotGiven,
   TurnNotPossibleWhenItIsAlreadyGiven
 }
-import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
-import com.lambtors.poker_api.module.poker.domain.model.{Card, GameId, Player}
+import com.lambtors.poker_api.module.poker.domain.model.{Card, GameId, Player, PokerGame}
 import com.lambtors.poker_api.module.shared.domain.DeckProvider
-import scala.concurrent.{ExecutionContext, Future}
+import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.MonadErrorThrowable
 
-final class TurnCardAdder(
-    repository: PokerGameRepository[Future],
-    playerRepository: PlayerRepository[Future],
+final class TurnCardAdder[P[_]: MonadErrorThrowable](
+    repository: PokerGameRepository[P],
+    playerRepository: PlayerRepository[P],
     deckProvider: DeckProvider
-)(implicit ec: ExecutionContext) {
-  def add(gameId: GameId): Future[Unit] =
+) {
+  def add(gameId: GameId): P[Unit] =
     repository
       .search(gameId)
-      .flatMap(_.fold(Future.failed[Unit](PokerGameNotFound(gameId))) { game =>
+      .flatMap(_.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId))) { game: PokerGame =>
         if (game.tableCards.length > 3) {
-          Future.failed[Unit](TurnNotPossibleWhenItIsAlreadyGiven(gameId))
+          MonadErrorThrowable[P].raiseError(TurnNotPossibleWhenItIsAlreadyGiven(gameId))
         } else if (game.tableCards.length < 3) {
-          Future.failed[Unit](TurnNotPossibleWhenFlopIsNotGiven(gameId))
+          MonadErrorThrowable[P].raiseError(TurnNotPossibleWhenFlopIsNotGiven(gameId))
         } else {
           playerRepository
             .search(gameId)
@@ -37,6 +38,7 @@ final class TurnCardAdder(
             )
         }
       })
+
   private def availableCards(cardsInGame: List[Card]) =
     deckProvider.provide().filterNot(card => cardsInGame.contains(card))
 
