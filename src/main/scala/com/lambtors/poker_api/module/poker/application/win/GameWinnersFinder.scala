@@ -9,21 +9,19 @@ import com.lambtors.poker_api.module.poker.domain.model._
 final class GameWinnersFinder(repository: PokerGameRepository, playerRepository: PlayerRepository)(
     implicit ec: ExecutionContext) {
 
-  def findWinners(gameId: GameId): Future[List[Player]] = repository.search(gameId).flatMap { gameOpt =>
-    if (gameOpt.isEmpty) {
-      throw PokerGameNotFound(gameId)
-    } else {
-      val game = gameOpt.get
-
-      if (game.tableCards.length < 5) {
-        throw GameCannotEndWhenRiverIsNotDealt(gameId)
-      } else {
-        playerRepository.search(gameId).map { players =>
-          findPlayersWithBestCombination(players, game.tableCards)
-        }
-      }
-    }
-  }
+  def findWinners(gameId: GameId): Future[List[Player]] =
+    repository
+      .search(gameId)
+      .flatMap(
+        _.fold[Future[List[Player]]](Future.failed(PokerGameNotFound(gameId)))(game =>
+          if (game.tableCards.length < 5) {
+            Future.failed(GameCannotEndWhenRiverIsNotDealt(gameId))
+          } else {
+            playerRepository.search(gameId).map { players =>
+              findPlayersWithBestCombination(players, game.tableCards)
+            }
+        })
+      )
 
   private def findPlayersWithBestCombination(players: List[Player], tableCards: List[Card]): List[Player] = {
     val bestCombinations = players.map(findBestCombinationOf(_, tableCards))
