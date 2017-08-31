@@ -7,7 +7,7 @@ import scala.concurrent.Future
 import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 
 final class FindTableCardsQueryHandler(tableCardsFinder: TableCardsFinder)
-    extends QueryHandler[FindTableCardsQuery, TableCardsResponse] {
+    extends QueryHandler[Future, FindTableCardsQuery, TableCardsResponse] {
   override def handle(query: FindTableCardsQuery): Validation[Future[TableCardsResponse]] =
     GameId.fromString(query.gameId).map(tableCardsFinder.find)
 }

@@ -1,7 +1,5 @@
 package com.lambtors.poker_api.module.poker.application.create
 
-import scala.concurrent.{ExecutionContext, Future}
-
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.error.PokerGameAlreadyExisting
@@ -14,7 +12,7 @@ final class PokerGameCreator[P[_]: MonadErrorThrowable](
     playerRepository: PlayerRepository[P],
     uUIDProvider: UUIDProvider,
     deckProvider: DeckProvider
-)(implicit ec: ExecutionContext) {
+) {
   def create(amountOfPlayers: AmountOfPlayers, gameId: GameId): P[Unit] =
     pokerGameRepository
       .search(gameId)
