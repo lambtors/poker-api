@@ -1,23 +1,23 @@
 package com.lambtors.poker_api.module.poker.application.flop
 
-import scala.concurrent.{ExecutionContext, Future}
-
+import cats.implicits._
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.error.{FlopNotPossibleWhenItIsAlreadyGiven, PokerGameNotFound}
-import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player}
+import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player, PokerGame}
 import com.lambtors.poker_api.module.shared.domain.DeckProvider
+import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.MonadErrorThrowable
 
-final class FlopCardsAdder(
-    repository: PokerGameRepository[Future],
-    playerRepository: PlayerRepository[Future],
+final class FlopCardsAdder[P[_]: MonadErrorThrowable](
+    repository: PokerGameRepository[P],
+    playerRepository: PlayerRepository[P],
     deckProvider: DeckProvider
-)(implicit ec: ExecutionContext) {
-  def add(gameId: GameId): Future[Unit] =
+) {
+  def add(gameId: GameId): P[Unit] =
     repository
       .search(gameId)
       .flatMap(
-        _.fold[Future[Unit]](Future.failed(PokerGameNotFound(gameId)))(game =>
-          if (game.tableCards.nonEmpty) Future.failed(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
+        _.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))((game: PokerGame) =>
+          if (game.tableCards.nonEmpty) MonadErrorThrowable[P].raiseError(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
           else {
             playerRepository
               .search(gameId)
