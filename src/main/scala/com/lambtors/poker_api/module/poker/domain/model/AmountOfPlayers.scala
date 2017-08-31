@@ -5,6 +5,8 @@ import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 
 import com.lambtors.poker_api.module.poker.domain.error.InvalidAmountOfPlayers
 
+import com.lambtors.poker_api.module.poker.domain.error.InvalidAmountOfPlayers
+
 final case class AmountOfPlayers(amount: Int)
 
 object AmountOfPlayers {
