@@ -33,7 +33,8 @@ final class TurnCardAdder[P[_]: MonadErrorThrowable](
                   game.copy(
                     tableCards = game.tableCards ++ deckProvider
                       .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
-                      .take(1))
+                      .take(1)
+                  )
               )
             )
         }
