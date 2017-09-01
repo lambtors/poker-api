@@ -19,3 +19,5 @@ final case class RiverNotPossibleWhenItIsAlreadyGiven(gameId: GameId) extends Po
 final case class RiverNotPossibleWhenTurnIsNotGiven(gameId: GameId) extends PokerError
 
 final case class PlayerNotFound(playerId: PlayerId) extends PokerError
+
+final case class GameCannotEndWhenRiverIsNotDealt(gameId: GameId) extends PokerError

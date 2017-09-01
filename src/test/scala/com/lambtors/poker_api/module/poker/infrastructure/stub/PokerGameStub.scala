@@ -23,8 +23,11 @@ object PokerGameStub {
     create(gameId, amountOfPlayers, (1 to 4).map(_ => CardStub.random()).toList)
 
   def createGameAtRiver(gameId: GameId = GameIdStub.random(),
-                        amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
-    create(gameId, amountOfPlayers, (1 to 5).map(_ => CardStub.random()).toList)
+                        amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random(),
+                        cards: List[Card] = (1 to 5).map(_ => CardStub.random()).toList): PokerGame = {
+    require(cards.length == 5, () => "We're at the river, 5 cards only please ;)")
+    create(gameId, amountOfPlayers, cards)
+  }
 
   def createGameNotAtFlop(gameId: GameId = GameIdStub.random(),
                           amountOfPlayers: AmountOfPlayers = AmountOfPlayersStub.random()): PokerGame =
