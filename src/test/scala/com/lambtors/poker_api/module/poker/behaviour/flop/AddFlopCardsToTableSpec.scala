@@ -4,6 +4,7 @@ import java.util.UUID
 
 import scala.util.Random
 
+import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.flop.{AddFlopCardsToTableCommandHandler, FlopCardsAdder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{

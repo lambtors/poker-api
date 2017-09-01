@@ -1,17 +1,16 @@
 package com.lambtors.poker_api.module.poker.application.player_cards.find
 
-import scala.concurrent.{ExecutionContext, Future}
-
+import cats.implicits._
 import com.lambtors.poker_api.module.poker.domain.PlayerRepository
 import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
-import com.lambtors.poker_api.module.poker.domain.model.{Card, PlayerId}
+import com.lambtors.poker_api.module.poker.domain.model.{Card, Player, PlayerId}
+import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.MonadErrorThrowable
 
-final class PlayerCardsFinder(playerRepository: PlayerRepository)(implicit ec: ExecutionContext) {
-  def find(playerId: PlayerId): Future[(Card, Card)] =
+final class PlayerCardsFinder[P[_]: MonadErrorThrowable](playerRepository: PlayerRepository[P]) {
+  def find(playerId: PlayerId): P[(Card, Card)] =
     playerRepository
       .search(playerId)
-      .flatMap(
-        _.fold[Future[(Card, Card)]](Future.failed(PlayerNotFound(playerId)))(player =>
-          Future.successful((player.firstCard, player.secondCard)))
-      )
+      .flatMap(_.fold[P[(Card, Card)]](MonadErrorThrowable[P].raiseError(PlayerNotFound(playerId))) { player: Player =>
+        (player.firstCard, player.secondCard).pure[P]
+      })
 }
