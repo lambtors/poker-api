@@ -19,26 +19,26 @@ class RiverCardAdder[P[_]: MonadErrorThrowable](
   def add(gameId: GameId): P[Unit] =
     repository
       .search(gameId)
-      .flatMap(
-        _.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-          cardsAtTableNumberGreaterThanFour(game.tableCards).ifM(
-            MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenItIsAlreadyGiven(gameId)),
-            cardsAtTableNumberLowerThanFour(game.tableCards).ifM(
-              MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenTurnIsNotGiven(gameId)),
-              playerRepository
-                .search(gameId)
-                .flatMap(
-                  players =>
-                    repository.update(
-                      game.copy(
-                        tableCards = game.tableCards ++ deckProvider
-                          .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
-                          .take(1)
-                      )
-                  )
+      .fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
+        cardsAtTableNumberGreaterThanFour(game.tableCards).ifM(
+          MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenItIsAlreadyGiven(gameId)),
+          cardsAtTableNumberLowerThanFour(game.tableCards).ifM(
+            MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenTurnIsNotGiven(gameId)),
+            playerRepository
+              .search(gameId)
+              .flatMap(
+                players =>
+                  repository.update(
+                    game.copy(
+                      tableCards = game.tableCards ++ deckProvider
+                        .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
+                        .take(1)
+                    )
                 )
-            )
-        )))
+              )
+          )
+      ))
+      .flatten
 
   private def availableCards(cardsInGame: List[Card]) =
     deckProvider.provide().filterNot(card => cardsInGame.contains(card))
