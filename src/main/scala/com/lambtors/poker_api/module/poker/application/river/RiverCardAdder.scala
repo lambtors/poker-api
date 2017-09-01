@@ -7,7 +7,7 @@ import com.lambtors.poker_api.module.poker.domain.error.{
   RiverNotPossibleWhenItIsAlreadyGiven,
   RiverNotPossibleWhenTurnIsNotGiven
 }
-import com.lambtors.poker_api.module.poker.domain.model.{Card, GameId, Player, PokerGame}
+import com.lambtors.poker_api.module.poker.domain.model.{Card, GameId, Player}
 import com.lambtors.poker_api.module.shared.domain.DeckProvider
 import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.MonadErrorThrowable
 
@@ -20,13 +20,11 @@ class RiverCardAdder[P[_]: MonadErrorThrowable](
     repository
       .search(gameId)
       .flatMap(
-        _.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(
-          (game: PokerGame) =>
-            if (game.tableCards.length > 4)
-              MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenItIsAlreadyGiven(gameId))
-            else if (game.tableCards.length < 4)
-              MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenTurnIsNotGiven(gameId))
-            else {
+        _.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
+          cardsAtTableNumberGreaterThanFour(game.tableCards).ifM(
+            MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenItIsAlreadyGiven(gameId)),
+            cardsAtTableNumberLowerThanFour(game.tableCards).ifM(
+              MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenTurnIsNotGiven(gameId)),
               playerRepository
                 .search(gameId)
                 .flatMap(
@@ -35,14 +33,20 @@ class RiverCardAdder[P[_]: MonadErrorThrowable](
                       game.copy(
                         tableCards = game.tableCards ++ deckProvider
                           .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
-                          .take(1))
+                          .take(1)
+                      )
                   )
                 )
-          }))
+            )
+        )))
 
   private def availableCards(cardsInGame: List[Card]) =
     deckProvider.provide().filterNot(card => cardsInGame.contains(card))
 
   private def playersCards(players: List[Player]) =
     players.flatMap(player => List(player.firstCard, player.secondCard))
+
+  private def cardsAtTableNumberGreaterThanFour(tableCards: List[Card]): P[Boolean] = (tableCards.length > 4).pure[P]
+
+  private def cardsAtTableNumberLowerThanFour(tableCards: List[Card]): P[Boolean] = (tableCards.length < 4).pure[P]
 }

@@ -10,7 +10,5 @@ final class FindPlayerCardsQueryHandler[P[_]: Functor](playerCardsFinder: Player
     extends QueryHandler[P, FindPlayerCardsQuery, FindPlayerCardsResponse] {
 
   override def handle(query: FindPlayerCardsQuery): Validation[P[FindPlayerCardsResponse]] =
-    validate(query).map(playerId => playerCardsFinder.find(playerId).map(FindPlayerCardsResponse))
-
-  private def validate(query: FindPlayerCardsQuery) = PlayerId.fromString(query.playerId)
+    PlayerId.fromString(query.playerId).map(playerCardsFinder.find(_).map(FindPlayerCardsResponse))
 }
