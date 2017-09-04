@@ -24,7 +24,7 @@ trait PokerBehaviourSpec
   protected val playerRepository: PlayerRepository[Future]       = mock[PlayerRepository[Future]]
 
   def shouldFindPokerGame(gameId: GameId, pokerGame: PokerGame): Unit =
-    (pokerGameRepository.search _).expects(gameId).once().returning(OptionT.fromOption[Future](Some(pokerGame)))
+    (pokerGameRepository.search _).expects(gameId).once().returning(OptionT.some[Future](pokerGame))
 
   def shouldNotFindPokerGame(gameId: GameId): Unit =
     (pokerGameRepository.search _).expects(gameId).once().returning(OptionT.none[Future, PokerGame])
@@ -42,7 +42,7 @@ trait PokerBehaviourSpec
     (playerRepository.search(_: GameId)).expects(gameId).once().returns(Future.successful(List.empty))
 
   def shouldFindPlayer(playerId: PlayerId, player: Player): Unit =
-    (playerRepository.search(_: PlayerId)).expects(playerId).once().returns(OptionT.fromOption[Future](Some(player)))
+    (playerRepository.search(_: PlayerId)).expects(playerId).once().returns(OptionT.some[Future](player))
 
   def shouldNotFindPlayer(playerId: PlayerId): Unit =
     (playerRepository.search(_: PlayerId)).expects(playerId).once().returns(OptionT.none[Future, Player])
