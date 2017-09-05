@@ -19,26 +19,26 @@ final class TurnCardAdder[P[_]: MonadErrorThrowable](
   def add(gameId: GameId): P[Unit] =
     repository
       .search(gameId)
-      .flatMap(
-        _.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-          cardsAtTableNumberIsGreaterThanThree(game.tableCards).ifM(
-            MonadErrorThrowable[P].raiseError(TurnNotPossibleWhenItIsAlreadyGiven(gameId)),
-            cardsAtTableNumberIsLowerThanThree(game.tableCards).ifM(
-              MonadErrorThrowable[P].raiseError(TurnNotPossibleWhenFlopIsNotGiven(gameId)),
-              playerRepository
-                .search(gameId)
-                .flatMap(
-                  players =>
-                    repository.update(
-                      game.copy(
-                        tableCards = game.tableCards ++ deckProvider
-                          .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
-                          .take(1)
-                      )
-                  )
+      .fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
+        thereAreMoreThanThreeCardsAtTable(game.tableCards).ifM(
+          MonadErrorThrowable[P].raiseError(TurnNotPossibleWhenItIsAlreadyGiven(gameId)),
+          thereAreLessThanThreeCardsAtTable(game.tableCards).ifM(
+            MonadErrorThrowable[P].raiseError(TurnNotPossibleWhenFlopIsNotGiven(gameId)),
+            playerRepository
+              .search(gameId)
+              .flatMap(
+                players =>
+                  repository.update(
+                    game.copy(
+                      tableCards = game.tableCards ++ deckProvider
+                        .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
+                        .take(1)
+                    )
                 )
-            )
-        )))
+              )
+          )
+      ))
+      .flatten
 
   private def availableCards(cardsInGame: List[Card]) =
     deckProvider.provide().filterNot(card => cardsInGame.contains(card))
@@ -46,7 +46,7 @@ final class TurnCardAdder[P[_]: MonadErrorThrowable](
   private def playersCards(players: List[Player]) =
     players.flatMap(player => List(player.firstCard, player.secondCard))
 
-  private def cardsAtTableNumberIsGreaterThanThree(tableCards: List[Card]): P[Boolean] = (tableCards.length > 3).pure[P]
+  private def thereAreMoreThanThreeCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length > 3).pure[P]
 
-  private def cardsAtTableNumberIsLowerThanThree(tableCards: List[Card]): P[Boolean] = (tableCards.length < 3).pure[P]
+  private def thereAreLessThanThreeCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length < 3).pure[P]
 }

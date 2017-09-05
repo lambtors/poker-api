@@ -13,27 +13,25 @@ final class FlopCardsAdder[P[_]: MonadErrorThrowable](
     playerRepository: PlayerRepository[P],
     deckProvider: DeckProvider
 ) {
-  def add(gameId: GameId): P[Unit] =
-    repository
-      .search(gameId)
-      .flatMap(
-        _.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-          thereAreCardAtTheTable(game.tableCards).ifM(
-            MonadErrorThrowable[P].raiseError(FlopNotPossibleWhenItIsAlreadyGiven(gameId)),
-            playerRepository
-              .search(gameId)
-              .flatMap(
-                players =>
-                  repository.update(
-                    game.copy(tableCards = deckProvider.shuffleGivenDeck(availableCards(players)).take(3))
-                )
+  def add(gameId: GameId): P[Unit] = {
+    repository.search(gameId).fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
+      thereAreCardsAtTable(game.tableCards).ifM(
+        MonadErrorThrowable[P].raiseError(FlopNotPossibleWhenItIsAlreadyGiven(gameId)),
+        playerRepository
+          .search(gameId)
+          .flatMap(
+            players =>
+              repository.update(
+                game.copy(tableCards = deckProvider.shuffleGivenDeck(availableCards(players)).take(3))
               )
-        )))
+          )
+      )).flatten
+  }
 
   private def availableCards(players: List[Player]) =
     deckProvider.provide().filterNot(card => playerCards(players).contains(card))
 
   private def playerCards(players: List[Player]) = players.flatMap(player => List(player.firstCard, player.secondCard))
 
-  private def thereAreCardAtTheTable(tableCards: List[Card]): P[Boolean] = tableCards.nonEmpty.pure[P]
+  private def thereAreCardsAtTable(tableCards: List[Card]): P[Boolean] = tableCards.nonEmpty.pure[P]
 }
