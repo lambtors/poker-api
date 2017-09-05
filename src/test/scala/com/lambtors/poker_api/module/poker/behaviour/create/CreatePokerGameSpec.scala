@@ -4,16 +4,16 @@ import java.util.UUID
 
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.create.{CreatePokerGameCommandHandler, PokerGameCreator}
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.{
-  InvalidAmountOfPlayers,
-  InvalidGameId,
-  PokerGameAlreadyExisting
-}
+import com.lambtors.poker_api.module.poker.behaviour.{PokerBehaviourSpec, PokerBehaviourSpecT}
+import com.lambtors.poker_api.module.poker.domain.error.{InvalidAmountOfPlayers, InvalidGameId, PokerGameAlreadyExisting}
+import com.lambtors.poker_api.module.poker.domain.model.{GameId, PokerGame}
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 
-final class CreatePokerGameSpec extends PokerBehaviourSpec with ProviderSpec {
+final class CreatePokerGameSpec extends PokerBehaviourSpecT with PokerBehaviourSpec with ProviderSpec {
+  import org.scalatest.Matchers
+  import org.hablapps.puretest._, ProgramMatchers.Syntax._, ProgramStateMatchers.Syntax._
+
   private val commandHandler = new CreatePokerGameCommandHandler(
     new PokerGameCreator(pokerGameRepository, playerRepository, uuidProvider, deckProvider)
   )
@@ -25,6 +25,8 @@ final class CreatePokerGameSpec extends PokerBehaviourSpec with ProviderSpec {
       val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createNew(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
       var deck      = CardStub.randomDeck()
+
+      val initialState = Map.empty[GameId, PokerGame]
 
       shouldNotFindPokerGame(gameId)
       shouldInsertPokerGame(pokerGame)

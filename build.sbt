@@ -6,6 +6,8 @@ version := "0.0.1"
 Configuration.settings
 
 /** ********* PROD DEPENDENCIES *****************/
+resolvers += "Habla repo - releases" at "http://repo.hablapps.com/releases"
+
 libraryDependencies ++= Seq(
   "com.github.nscala-time" %% "nscala-time"   % "2.16.0",
   "com.lihaoyi"            %% "pprint"        % "0.5.2",
@@ -18,7 +20,8 @@ libraryDependencies ++= Seq(
 /** ********* TEST DEPENDENCIES *****************/
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest"                   % "3.0.1" % Test,
-  "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test,
+  "org.hablapps"  %% "puretest-cats"               % "0.2"   % Test
 )
 
 /** ********* COMMANDS ALIASES ******************/
