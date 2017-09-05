@@ -11,6 +11,6 @@ final class PlayerCardsFinder[P[_]: MonadErrorThrowable](playerRepository: Playe
     playerRepository
       .search(playerId)
       .fold[P[(Card, Card)]](MonadErrorThrowable[P].raiseError(PlayerNotFound(playerId)))(player =>
-        (player.firstCard, player.secondCard).pure[P])
+        player.cards.pure[P])
       .flatten
 }

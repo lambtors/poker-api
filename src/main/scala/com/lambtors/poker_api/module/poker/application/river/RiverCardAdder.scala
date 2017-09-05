@@ -20,9 +20,9 @@ class RiverCardAdder[P[_]: MonadErrorThrowable](
     repository
       .search(gameId)
       .fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-        cardsAtTableNumberGreaterThanFour(game.tableCards).ifM(
+        thereAreMoreThanFourCardsAtTable(game.tableCards).ifM(
           MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenItIsAlreadyGiven(gameId)),
-          cardsAtTableNumberLowerThanFour(game.tableCards).ifM(
+          thereAreLessThanFourCardsAtTable(game.tableCards).ifM(
             MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenTurnIsNotGiven(gameId)),
             playerRepository
               .search(gameId)
@@ -46,7 +46,7 @@ class RiverCardAdder[P[_]: MonadErrorThrowable](
   private def playersCards(players: List[Player]) =
     players.flatMap(player => List(player.firstCard, player.secondCard))
 
-  private def cardsAtTableNumberGreaterThanFour(tableCards: List[Card]): P[Boolean] = (tableCards.length > 4).pure[P]
+  private def thereAreMoreThanFourCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length > 4).pure[P]
 
-  private def cardsAtTableNumberLowerThanFour(tableCards: List[Card]): P[Boolean] = (tableCards.length < 4).pure[P]
+  private def thereAreLessThanFourCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length < 4).pure[P]
 }

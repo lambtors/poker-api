@@ -15,7 +15,7 @@ final class FlopCardsAdder[P[_]: MonadErrorThrowable](
 ) {
   def add(gameId: GameId): P[Unit] = {
     repository.search(gameId).fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-      thereAreCardAtTheTable(game.tableCards).ifM(
+      thereAreCardsAtTable(game.tableCards).ifM(
         MonadErrorThrowable[P].raiseError(FlopNotPossibleWhenItIsAlreadyGiven(gameId)),
         playerRepository
           .search(gameId)
@@ -33,5 +33,5 @@ final class FlopCardsAdder[P[_]: MonadErrorThrowable](
 
   private def playerCards(players: List[Player]) = players.flatMap(player => List(player.firstCard, player.secondCard))
 
-  private def thereAreCardAtTheTable(tableCards: List[Card]): P[Boolean] = tableCards.nonEmpty.pure[P]
+  private def thereAreCardsAtTable(tableCards: List[Card]): P[Boolean] = tableCards.nonEmpty.pure[P]
 }

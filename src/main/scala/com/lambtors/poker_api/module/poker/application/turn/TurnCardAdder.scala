@@ -20,9 +20,9 @@ final class TurnCardAdder[P[_]: MonadErrorThrowable](
     repository
       .search(gameId)
       .fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-        cardsAtTableNumberIsGreaterThanThree(game.tableCards).ifM(
+        thereAreMoreThanThreeCardsAtTable(game.tableCards).ifM(
           MonadErrorThrowable[P].raiseError(TurnNotPossibleWhenItIsAlreadyGiven(gameId)),
-          cardsAtTableNumberIsLowerThanThree(game.tableCards).ifM(
+          thereAreLessThanThreeCardsAtTable(game.tableCards).ifM(
             MonadErrorThrowable[P].raiseError(TurnNotPossibleWhenFlopIsNotGiven(gameId)),
             playerRepository
               .search(gameId)
@@ -46,7 +46,7 @@ final class TurnCardAdder[P[_]: MonadErrorThrowable](
   private def playersCards(players: List[Player]) =
     players.flatMap(player => List(player.firstCard, player.secondCard))
 
-  private def cardsAtTableNumberIsGreaterThanThree(tableCards: List[Card]): P[Boolean] = (tableCards.length > 3).pure[P]
+  private def thereAreMoreThanThreeCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length > 3).pure[P]
 
-  private def cardsAtTableNumberIsLowerThanThree(tableCards: List[Card]): P[Boolean] = (tableCards.length < 3).pure[P]
+  private def thereAreLessThanThreeCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length < 3).pure[P]
 }
