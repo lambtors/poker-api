@@ -14,7 +14,7 @@ abstract class PokerGameRepositoryState {
 
   object Q {
     def apply[A](
-      f: PokerGameRepositoryState => R[(PokerGameRepositoryState, A)]): StateT[R, PokerGameRepositoryState, A] =
+        f: PokerGameRepositoryState => R[(PokerGameRepositoryState, A)]): StateT[R, PokerGameRepositoryState, A] =
       StateT[R, PokerGameRepositoryState, A](f)
   }
 
@@ -43,26 +43,25 @@ abstract class PlayerRepositoryState {
   type Q[A] = StateT[R, PlayerRepositoryState, A]
 
   object Q {
-    def apply[A](
-      f: PlayerRepositoryState => R[(PlayerRepositoryState, A)]): StateT[R, PlayerRepositoryState, A] =
+    def apply[A](f: PlayerRepositoryState => R[(PlayerRepositoryState, A)]): StateT[R, PlayerRepositoryState, A] =
       StateT[R, PlayerRepositoryState, A](f)
   }
 
   type P[A] = Validation[Q[A]]
 
   val playerRepository: PlayerRepository[Q] = new PlayerRepository[Q] {
-    override def insert(player: Player): Q[Unit] =  Q[Unit] { repo =>
+    override def insert(player: Player): Q[Unit] = Q[Unit] { repo =>
       Right((repo + (player.gameId -> Map[PlayerId, Player](player.playerId, player)), Unit))
     }
 
-    override def search(playerId: PlayerId): OptionT[Q, Player] = OptionT[Q, Player](Q[Option[Player]] { repo =>
-      Right((repo, {
-        val bla = repo.map {
-          case (gameId, playersMap) =>
-      }}))
-    })
+    override def search(playerId: PlayerId): OptionT[Q, Player] =
+      OptionT[Q, Player](Q[Option[Player]] { repo =>
+        Right((repo, repo.values.toList.flatten.toMap.get(playerId)))
+      })
 
-    override def search(gameId: GameId): Q[List[Player]] = Q[List[Player]]
+    override def search(gameId: GameId): Q[List[Player]] = Q[List[Player]] { repo =>
+      Right((repo, repo.get(gameId).fold[List[Player]](Nil)(_.values.toList)))
+    }
   }
 }
 
