@@ -1,12 +1,14 @@
 package com.lambtors.poker_api.module.poker.behaviour
 
 import cats.Functor
+import cats.implicits._
 import cats.data.{OptionT, StateT}
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player, PlayerId, PokerGame}
 import com.lambtors.poker_api.module.shared.domain.Validation.Validation
+import org.scalatest.{Matchers, WordSpec}
 
-abstract class PokerGameRepositoryState {
+trait PokerGameRepositoryState {
   type PokerGameRepositoryState = Map[GameId, PokerGame]
 
   type R[A] = Either[Throwable, A]
@@ -36,7 +38,7 @@ abstract class PokerGameRepositoryState {
   }
 }
 
-abstract class PlayerRepositoryState {
+trait PlayerRepositoryState {
   type PlayerRepositoryState = Map[GameId, Map[PlayerId, Player]]
 
   type R[A] = Either[Throwable, A]
@@ -51,7 +53,7 @@ abstract class PlayerRepositoryState {
 
   val playerRepository: PlayerRepository[Q] = new PlayerRepository[Q] {
     override def insert(player: Player): Q[Unit] = Q[Unit] { repo =>
-      Right((repo + (player.gameId -> Map[PlayerId, Player](player.playerId, player)), Unit))
+      Right((repo + (player.gameId -> Map[PlayerId, Player](player.playerId -> player)), Unit))
     }
 
     override def search(playerId: PlayerId): OptionT[Q, Player] =
@@ -65,7 +67,11 @@ abstract class PlayerRepositoryState {
   }
 }
 
-abstract class PokerBehaviourSpecT {
+abstract class PokerBehaviourSpecT
+  extends WordSpec
+  with Matchers
+  with PokerGameRepositoryState
+  with PlayerRepositoryState {
   /* Instances needed for puretest */
 
   implicit def _1[F[_]: Functor, G[_]: Functor]: Functor[({
