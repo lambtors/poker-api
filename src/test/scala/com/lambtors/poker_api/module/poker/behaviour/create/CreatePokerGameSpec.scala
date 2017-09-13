@@ -1,16 +1,17 @@
 package com.lambtors.poker_api.module.poker.behaviour.create
 
+import java.util.UUID
+
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.create.{CreatePokerGameCommandHandler, PokerGameCreator}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
-import com.lambtors.poker_api.module.poker.domain.model.{GameId, PokerGame}
+import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player, PlayerId, PokerGame}
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
+import com.lambtors.poker_api.module.shared.domain.Validation
 import org.scalactic.Validation
 
-final class CreatePokerGameSpec extends PokerBehaviourSpecT  with ProviderSpec {
-  import org.hablapps.puretest._, ProgramMatchers.Syntax._, ProgramStateMatchers.Syntax._
-
+final class CreatePokerGameSpec extends PokerBehaviourSpecT with ProviderSpec {
   val commandHandler = new CreatePokerGameCommandHandler[Q](
     new PokerGameCreator[Q](pokerGameRepository, playerRepository, uuidProvider, deckProvider)
   )
@@ -19,25 +20,32 @@ final class CreatePokerGameSpec extends PokerBehaviourSpecT  with ProviderSpec {
     "create a poker game" in {
       val command = CreatePokerGameCommandStub.random()
 
-//      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
-//      val pokerGame = PokerGameStub.createNew(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
-//      var deck      = CardStub.randomDeck()
+      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
+      val pokerGame = PokerGameStub.createNew(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
+      var deck      = CardStub.randomDeck()
 
-      val initialState = Map.empty[GameId, PokerGame]
-//      val initialPlayerRepositoryState = Map.empty[GameId, Map[PlayerId, Player]]
+      shouldProvideDeck(deck)
 
-//      (1 to command.amountOfPlayers).foreach { _ =>
-//        val uuid = UUID.randomUUID()
-//        shouldProvideUUID(uuid)
-//
-//        val firstCard :: cardsWithoutFirstCard           = deck
-//        val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
-//        deck = cardsWithoutFirstAndSecondCard
-//
+      (1 to command.amountOfPlayers).foreach { _ =>
+        val uuid = UUID.randomUUID()
+        shouldProvideUUID(uuid)
+
+        val firstCard :: cardsWithoutFirstCard           = deck
+        val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
+        deck = cardsWithoutFirstAndSecondCard
+
 //        shouldInsertPlayer(PlayerStub.create(PlayerIdStub.create(uuid), gameId, firstCard, secondCard))
-//      }
+      }
 
-      commandHandler.handle(command) should from[P](initialState).runWithoutErrors
+      val initialState             = PokerState.empty
+      val transformationValidation = commandHandler.handle(command)
+
+      transformationValidation should beValid
+      transformationValidation.map { transformation =>
+        val finalState: R[PokerState] = transformation.runS(initialState)
+        finalState.isRight should ===(true)
+        println(finalState.right.get)
+      }
     }
 
 //    "return a failed future in case a game already exists with the same id" in {

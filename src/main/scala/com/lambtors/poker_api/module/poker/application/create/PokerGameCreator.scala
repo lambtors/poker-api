@@ -14,23 +14,27 @@ final class PokerGameCreator[P[_]: MonadErrorThrowable](
     deckProvider: DeckProvider
 ) {
   def create(amountOfPlayers: AmountOfPlayers, gameId: GameId): P[Unit] = {
-    pokerGameRepository.search(gameId).fold {
-      pokerGameRepository
-        .insert(PokerGame(gameId, amountOfPlayers, List.empty))
-        .map(
-          _ => {
-            var cards = deckProvider.provide()
+    pokerGameRepository
+      .search(gameId)
+      .fold {
+        pokerGameRepository
+          .insert(PokerGame(gameId, amountOfPlayers, List.empty))
+          .flatMap(
+            _ => {
+              var cards = deckProvider.provide()
 
-            (1 to amountOfPlayers.amount).foreach(
-              _ => {
-                val firstCard :: cardsWithoutFirstCard = cards
-                val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
-                cards = cardsWithoutFirstAndSecondCard
-                playerRepository.insert(Player(PlayerId(uUIDProvider.provide()), gameId, firstCard, secondCard))
-              }
-            )
-          }
-        )
-    }(_ => MonadErrorThrowable[P].raiseError(PokerGameAlreadyExisting(gameId))).flatten
+              (1 to amountOfPlayers.amount).toList
+                .traverse_(
+                  _ => {
+                    val firstCard :: cardsWithoutFirstCard           = cards
+                    val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
+                    cards = cardsWithoutFirstAndSecondCard
+                    playerRepository.insert(Player(PlayerId(uUIDProvider.provide()), gameId, firstCard, secondCard))
+                  }
+                )
+            }
+          )
+      }(_ => MonadErrorThrowable[P].raiseError(PokerGameAlreadyExisting(gameId)))
+      .flatten
   }
 }
