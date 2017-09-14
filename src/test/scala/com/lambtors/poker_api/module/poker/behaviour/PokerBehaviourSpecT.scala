@@ -1,20 +1,34 @@
 package com.lambtors.poker_api.module.poker.behaviour
 
+import java.util.UUID
+
 import cats.Functor
 import cats.implicits._
 import cats.data.{OptionT, StateT}
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player, PlayerId, PokerGame}
 import com.lambtors.poker_api.module.shared.ValidationMatchers
+import com.lambtors.poker_api.module.shared.domain.UUIDProvider
 import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 import org.scalatest.{Matchers, WordSpec}
 
 trait PokerStateT {
   case class PokerState(pokerGameRepositoryState: Map[GameId, PokerGame],
-                        playerRepositoryState: Map[GameId, Map[PlayerId, Player]])
+                        playerRepositoryState: Map[GameId, Map[PlayerId, Player]],
+                        uuidProvisions: List[UUID]) {
+    def withUuid(uuid: UUID): PokerState = copy(uuidProvisions = uuidProvisions :+ uuid)
+
+    def withPlayer(player: Player): PokerState =
+      copy(
+        playerRepositoryState = playerRepositoryState + (player.gameId                  ->
+          (playerRepositoryState.getOrElse(player.gameId, Map.empty) + (player.playerId -> player))))
+
+    def withGame(pokerGame: PokerGame): PokerState =
+      copy(pokerGameRepositoryState = pokerGameRepositoryState + (pokerGame.gameId -> pokerGame))
+  }
 
   object PokerState {
-    val empty = PokerState(Map.empty, Map.empty)
+    val empty = PokerState(Map.empty, Map.empty, Nil)
   }
 
   type R[A] = Either[Throwable, A]
@@ -28,7 +42,7 @@ trait PokerStateT {
 
   val pokerGameRepository: PokerGameRepository[Q] = new PokerGameRepository[Q] {
     override def insert(pokerGame: PokerGame): Q[Unit] = Q[Unit] { state =>
-      Right(state.copy(pokerGameRepositoryState = state.pokerGameRepositoryState + (pokerGame.gameId -> pokerGame)), ())
+      Right(state.withGame(pokerGame), ())
     }
 
     override def update(pokerGame: PokerGame): Q[Unit] = Q[Unit] { state =>
@@ -43,12 +57,7 @@ trait PokerStateT {
 
   val playerRepository: PlayerRepository[Q] = new PlayerRepository[Q] {
     override def insert(player: Player): Q[Unit] = Q[Unit] { state =>
-      Right(
-        state.copy(
-          playerRepositoryState = state.playerRepositoryState + (player.gameId                  ->
-            (state.playerRepositoryState.getOrElse(player.gameId, Map.empty) + (player.playerId -> player)))),
-        ()
-      )
+      Right(state.withPlayer(player), ())
     }
 
     override def search(playerId: PlayerId): OptionT[Q, Player] =
@@ -58,6 +67,13 @@ trait PokerStateT {
 
     override def search(gameId: GameId): Q[List[Player]] = Q[List[Player]] { state =>
       Right((state, state.playerRepositoryState.get(gameId).fold[List[Player]](Nil)(_.values.toList)))
+    }
+  }
+
+  val uuidProviderStateT: UUIDProvider[Q] = new UUIDProvider[Q] {
+    override def provide(): Q[UUID] = Q[UUID] { state =>
+      val uuid :: leftoverUuids = state.uuidProvisions
+      Right(state.copy(uuidProvisions = leftoverUuids), uuid)
     }
   }
 }

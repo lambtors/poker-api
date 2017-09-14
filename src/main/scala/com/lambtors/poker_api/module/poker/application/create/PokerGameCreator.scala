@@ -1,5 +1,7 @@
 package com.lambtors.poker_api.module.poker.application.create
 
+import java.util.UUID
+
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.error.PokerGameAlreadyExisting
@@ -10,7 +12,7 @@ import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.Mo
 final class PokerGameCreator[P[_]: MonadErrorThrowable](
     pokerGameRepository: PokerGameRepository[P],
     playerRepository: PlayerRepository[P],
-    uUIDProvider: UUIDProvider,
+    uUIDProvider: UUIDProvider[P],
     deckProvider: DeckProvider
 ) {
   def create(amountOfPlayers: AmountOfPlayers, gameId: GameId): P[Unit] = {
@@ -29,7 +31,9 @@ final class PokerGameCreator[P[_]: MonadErrorThrowable](
                     val firstCard :: cardsWithoutFirstCard           = cards
                     val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
                     cards = cardsWithoutFirstAndSecondCard
-                    playerRepository.insert(Player(PlayerId(uUIDProvider.provide()), gameId, firstCard, secondCard))
+                    uUIDProvider
+                      .provide()
+                      .flatMap(uuid => playerRepository.insert(Player(PlayerId(uuid), gameId, firstCard, secondCard)))
                   }
                 )
             }

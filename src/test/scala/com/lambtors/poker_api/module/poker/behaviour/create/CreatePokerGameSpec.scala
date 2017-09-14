@@ -2,6 +2,8 @@ package com.lambtors.poker_api.module.poker.behaviour.create
 
 import java.util.UUID
 
+import scala.reflect.macros.whitebox
+
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.create.{CreatePokerGameCommandHandler, PokerGameCreator}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
@@ -13,7 +15,7 @@ import org.scalactic.Validation
 
 final class CreatePokerGameSpec extends PokerBehaviourSpecT with ProviderSpec {
   val commandHandler = new CreatePokerGameCommandHandler[Q](
-    new PokerGameCreator[Q](pokerGameRepository, playerRepository, uuidProvider, deckProvider)
+    new PokerGameCreator[Q](pokerGameRepository, playerRepository, uuidProviderStateT, deckProvider)
   )
 
   "A CreatePokerGameCommandHandler" should {
@@ -24,27 +26,31 @@ final class CreatePokerGameSpec extends PokerBehaviourSpecT with ProviderSpec {
       val pokerGame = PokerGameStub.createNew(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
       var deck      = CardStub.randomDeck()
 
+      var initialState: PokerState = PokerState.empty
+      var finalState: PokerState   = PokerState.empty
+
       shouldProvideDeck(deck)
+
+      finalState = finalState.withGame(pokerGame)
 
       (1 to command.amountOfPlayers).foreach { _ =>
         val uuid = UUID.randomUUID()
-        shouldProvideUUID(uuid)
+        initialState = initialState.withUuid(uuid)
 
         val firstCard :: cardsWithoutFirstCard           = deck
         val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
         deck = cardsWithoutFirstAndSecondCard
 
-//        shouldInsertPlayer(PlayerStub.create(PlayerIdStub.create(uuid), gameId, firstCard, secondCard))
+        finalState = finalState.withPlayer(PlayerStub.create(PlayerIdStub.create(uuid), gameId, firstCard, secondCard))
       }
 
-      val initialState             = PokerState.empty
       val transformationValidation = commandHandler.handle(command)
 
       transformationValidation should beValid
       transformationValidation.map { transformation =>
-        val finalState: R[PokerState] = transformation.runS(initialState)
-        finalState.isRight should ===(true)
-        println(finalState.right.get)
+        val transformedState: R[PokerState] = transformation.runS(initialState)
+        transformedState.isRight should ===(true)
+        transformedState.right.get should ===(finalState)
       }
     }
 
