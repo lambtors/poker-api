@@ -13,7 +13,7 @@ final class PokerGameCreator[P[_]: MonadErrorThrowable](
     pokerGameRepository: PokerGameRepository[P],
     playerRepository: PlayerRepository[P],
     uUIDProvider: UUIDProvider[P],
-    deckProvider: DeckProvider
+    deckProvider: DeckProvider[P]
 ) {
   def create(amountOfPlayers: AmountOfPlayers, gameId: GameId): P[Unit] = {
     pokerGameRepository
@@ -23,19 +23,19 @@ final class PokerGameCreator[P[_]: MonadErrorThrowable](
           .insert(PokerGame(gameId, amountOfPlayers, List.empty))
           .flatMap(
             _ => {
-              var cards = deckProvider.provide()
-
-              (1 to amountOfPlayers.amount).toList
-                .traverse_(
-                  _ => {
-                    val firstCard :: cardsWithoutFirstCard           = cards
-                    val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
-                    cards = cardsWithoutFirstAndSecondCard
-                    uUIDProvider
-                      .provide()
-                      .flatMap(uuid => playerRepository.insert(Player(PlayerId(uuid), gameId, firstCard, secondCard)))
-                  }
-                )
+              deckProvider.provide().flatMap { cards =>
+                var leftoverCards = cards
+                (1 to amountOfPlayers.amount).toList
+                  .traverse_(
+                    _ => {
+                      val firstCard :: secondCard :: otherCards = leftoverCards
+                      leftoverCards = otherCards
+                      uUIDProvider
+                        .provide()
+                        .flatMap(uuid => playerRepository.insert(Player(PlayerId(uuid), gameId, firstCard, secondCard)))
+                    }
+                  )
+              }
             }
           )
       }(_ => MonadErrorThrowable[P].raiseError(PokerGameAlreadyExisting(gameId)))

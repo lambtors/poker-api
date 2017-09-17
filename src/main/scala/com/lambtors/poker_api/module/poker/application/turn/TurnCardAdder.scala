@@ -14,7 +14,7 @@ import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.Mo
 final class TurnCardAdder[P[_]: MonadErrorThrowable](
     repository: PokerGameRepository[P],
     playerRepository: PlayerRepository[P],
-    deckProvider: DeckProvider
+    deckProvider: DeckProvider[P]
 ) {
   def add(gameId: GameId): P[Unit] =
     repository
@@ -28,22 +28,19 @@ final class TurnCardAdder[P[_]: MonadErrorThrowable](
               .search(gameId)
               .flatMap(
                 players =>
-                  repository.update(
-                    game.copy(
-                      tableCards = game.tableCards ++ deckProvider
-                        .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
-                        .take(1)
-                    )
-                )
+                  shuffleAvailableCards(playersCards(players) ++ game.tableCards).flatMap(shuffledCards =>
+                    repository.update(game.copy(tableCards = game.tableCards ++ shuffledCards.take(1))))
               )
           )
       ))
       .flatten
 
-  private def availableCards(cardsInGame: List[Card]) =
-    deckProvider.provide().filterNot(card => cardsInGame.contains(card))
+  private def shuffleAvailableCards(cardsInGame: List[Card]) =
+    deckProvider
+      .provide()
+      .flatMap(cards => deckProvider.shuffleGivenDeck(cards.filterNot(card => cardsInGame.contains(card))))
 
-  private def playersCards(players: List[Player]) =
+  private def playersCards(players: List[Player]): List[Card] =
     players.flatMap(player => List(player.firstCard, player.secondCard))
 
   private def thereAreMoreThanThreeCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length > 3).pure[P]

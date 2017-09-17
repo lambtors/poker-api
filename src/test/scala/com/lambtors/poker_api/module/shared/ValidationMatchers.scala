@@ -4,8 +4,10 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.util.Try
 
+import cats.data.StateT
 import cats.data.Validated.{Invalid, Valid}
 import com.lambtors.poker_api.module.poker.domain.error.PokerValidationError
+import com.lambtors.poker_api.module.shared.domain.Validation
 import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures
@@ -62,6 +64,14 @@ trait ValidationMatchers extends Matchers with ScalaFutures {
         s"$validated didn't include the errors. Expected: $expectedErrors, actual: $actualErrors.",
         s"$validated did include the errors: Expected: $expectedErrors, actual: $actualErrors."
       )
+  }
+
+  def beRightContaining[T](value: T): Matcher[Either[_, T]] = Matcher { either =>
+    MatchResult(
+      either.fold(_ => false, _ === value),
+      s"'$either' was not a right matching '$value'.",
+      s"'$either' was matching '$value', but should not be."
+    )
   }
 
   private def failedResult[T](context: T) =

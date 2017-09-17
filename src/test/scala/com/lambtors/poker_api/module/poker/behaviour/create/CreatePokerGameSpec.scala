@@ -2,36 +2,30 @@ package com.lambtors.poker_api.module.poker.behaviour.create
 
 import java.util.UUID
 
-import scala.reflect.macros.whitebox
-
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.create.{CreatePokerGameCommandHandler, PokerGameCreator}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
-import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player, PlayerId, PokerGame}
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
-import com.lambtors.poker_api.module.shared.domain.Validation
-import org.scalactic.Validation
 
 final class CreatePokerGameSpec extends PokerBehaviourSpecT with ProviderSpec {
   val commandHandler = new CreatePokerGameCommandHandler[Q](
-    new PokerGameCreator[Q](pokerGameRepository, playerRepository, uuidProviderStateT, deckProvider)
+    new PokerGameCreator[Q](pokerGameRepository, playerRepository, uuidProviderStateT, deckProviderStateT)
   )
 
   "A CreatePokerGameCommandHandler" should {
     "create a poker game" in {
+      var initialState: PokerState = PokerState.empty
+      var finalState: PokerState   = PokerState.empty
+
       val command = CreatePokerGameCommandStub.random()
 
       val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createNew(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
       var deck      = CardStub.randomDeck()
 
-      var initialState: PokerState = PokerState.empty
-      var finalState: PokerState   = PokerState.empty
-
-      shouldProvideDeck(deck)
-
       finalState = finalState.withGame(pokerGame)
+      initialState = initialState.withDeck(deck)
 
       (1 to command.amountOfPlayers).foreach { _ =>
         val uuid = UUID.randomUUID()
@@ -44,14 +38,9 @@ final class CreatePokerGameSpec extends PokerBehaviourSpecT with ProviderSpec {
         finalState = finalState.withPlayer(PlayerStub.create(PlayerIdStub.create(uuid), gameId, firstCard, secondCard))
       }
 
-      val transformationValidation = commandHandler.handle(command)
-
-      transformationValidation should beValid
-      transformationValidation.map { transformation =>
-        val transformedState: R[PokerState] = transformation.runS(initialState)
-        transformedState.isRight should ===(true)
-        transformedState.right.get should ===(finalState)
-      }
+      val validatedStateT = commandHandler.handle(command)
+      validatedStateT should beValid
+      validatedStateT.map(_.runS(initialState) should beRightContaining(finalState))
     }
 
 //    "return a failed future in case a game already exists with the same id" in {

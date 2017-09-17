@@ -11,10 +11,11 @@ import org.scalatest.OneInstancePerTest
 
 trait ProviderSpec extends MockFactory with OneInstancePerTest {
   protected val uuidProvider = mock[UUIDProvider[Future]]
-  protected val deckProvider = mock[DeckProvider]
+  protected val deckProvider = mock[DeckProvider[Future]]
 
-  def shouldProvideUUID(uuid: UUID): Unit       = (uuidProvider.provide _).expects().once().returns(Future.successful(uuid))
-  def shouldProvideDeck(deck: List[Card]): Unit = (deckProvider.provide _).expects().once().returns(deck)
+  def shouldProvideUUID(uuid: UUID): Unit = (uuidProvider.provide _).expects().once().returns(Future.successful(uuid))
+  def shouldProvideDeck(deck: List[Card]): Unit =
+    (deckProvider.provide _).expects().once().returns(Future.successful(deck))
   def shouldShuffleGivenDeck(orderedDeck: List[Card], shuffledDeck: List[Card]): Unit =
-    (deckProvider.shuffleGivenDeck _).expects(orderedDeck).once().returns(shuffledDeck)
+    (deckProvider.shuffleGivenDeck _).expects(orderedDeck).once().returns(Future.successful(shuffledDeck))
 }
