@@ -6,10 +6,10 @@ import cats.Functor
 import cats.implicits._
 import cats.data.{OptionT, StateT}
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
+import com.lambtors.poker_api.module.poker.domain.error.PokerError
 import com.lambtors.poker_api.module.poker.domain.model._
 import com.lambtors.poker_api.module.shared.ValidationMatchers
 import com.lambtors.poker_api.module.shared.domain.{DeckProvider, UUIDProvider}
-import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 import org.scalatest.{Matchers, WordSpec}
 
 trait PokerStateT {

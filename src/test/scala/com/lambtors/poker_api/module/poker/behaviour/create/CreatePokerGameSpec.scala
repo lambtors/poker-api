@@ -5,6 +5,11 @@ import java.util.UUID
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.create.{CreatePokerGameCommandHandler, PokerGameCreator}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
+import com.lambtors.poker_api.module.poker.domain.error.{
+  InvalidAmountOfPlayers,
+  InvalidGameId,
+  PokerGameAlreadyExisting
+}
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 
@@ -15,10 +20,9 @@ final class CreatePokerGameSpec extends PokerBehaviourSpecT with ProviderSpec {
 
   "A CreatePokerGameCommandHandler" should {
     "create a poker game" in {
+      val command                  = CreatePokerGameCommandStub.random()
       var initialState: PokerState = PokerState.empty
       var finalState: PokerState   = PokerState.empty
-
-      val command = CreatePokerGameCommandStub.random()
 
       val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createNew(gameId, AmountOfPlayersStub.create(command.amountOfPlayers))
@@ -43,27 +47,25 @@ final class CreatePokerGameSpec extends PokerBehaviourSpecT with ProviderSpec {
       validatedStateT.map(_.runS(initialState) should beRightContaining(finalState))
     }
 
-//    "return a failed future in case a game already exists with the same id" in {
-//      val command = CreatePokerGameCommandStub.random()
-//
-//      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
-//      val pokerGame = PokerGameStub.create(gameId)
-//
-//      shouldFindPokerGame(gameId, pokerGame)
-//
-//      commandHandler.handle(command) should beFailedFutureWith(PokerGameAlreadyExisting(gameId))
-//    }
-//
-//    "return a validation error on invalid amount of players" in {
-//      val command = CreatePokerGameCommandStub.create(amountOfPlayers = AmountOfPlayersStub.invalid())
-//
-//      commandHandler.handle(command) should haveValidationErrors(InvalidAmountOfPlayers(command.amountOfPlayers))
-//    }
-//
-//    "return a validation error on invalid game id" in {
-//      val command = CreatePokerGameCommandStub.create(gameId = GameIdStub.invalid())
-//
-//      commandHandler.handle(command) should haveValidationErrors(InvalidGameId(command.gameId))
-//    }
+    "fail in case a game already exists with the same id" in {
+      val command                  = CreatePokerGameCommandStub.random()
+      var initialState: PokerState = PokerState.empty
+
+      val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
+      val pokerGame = PokerGameStub.create(gameId)
+
+      initialState = initialState.withGame(pokerGame)
+
+      val validatedStateT = commandHandler.handle(command)
+      validatedStateT should beValid
+      validatedStateT.map(_.runS(initialState) should beLeftContaining[Throwable](PokerGameAlreadyExisting(gameId)))
+    }
+
+    "return validation errors on an invalid command" in {
+      val command = CreatePokerGameCommandStub.invalid()
+
+      commandHandler.handle(command) should haveValidationErrors(InvalidGameId(command.gameId),
+                                                                 InvalidAmountOfPlayers(command.amountOfPlayers))
+    }
   }
 }
