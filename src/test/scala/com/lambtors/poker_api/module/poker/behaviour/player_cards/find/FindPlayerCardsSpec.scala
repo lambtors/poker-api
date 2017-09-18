@@ -7,7 +7,7 @@ import com.lambtors.poker_api.module.poker.application.player_cards.find.{
   FindPlayerCardsQueryHandler,
   PlayerCardsFinder
 }
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
+import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
 import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
 import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   FindPlayerCardsQueryStub,
@@ -16,7 +16,7 @@ import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   PlayerStub
 }
 
-final class FindPlayerCardsSpec extends PokerBehaviourSpec {
+final class FindPlayerCardsSpec extends PokerBehaviourSpecT {
 
   val queryHandler = new FindPlayerCardsQueryHandler(new PlayerCardsFinder(playerRepository))
 
@@ -25,22 +25,26 @@ final class FindPlayerCardsSpec extends PokerBehaviourSpec {
       val query = FindPlayerCardsQueryStub.random()
 
       val player = PlayerStub.create(playerId = PlayerIdStub.create(UUID.fromString(query.playerId)))
-      shouldFindPlayer(player.playerId, player)
+
+      val initialState = PokerState.empty.withPlayer(player)
 
       val expectedResponse = FindPlayerCardsResponseStub.create(player.cards)
 
-      val result = queryHandler.handle(query)
-      result should beValid
-      result.map(_.futureValue should ===(expectedResponse))
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(initialState) should beRightContaining(expectedResponse))
     }
 
     "fail if the player does not exist" in {
       val query = FindPlayerCardsQueryStub.random()
 
       val playerId = PlayerIdStub.create(UUID.fromString(query.playerId))
-      shouldNotFindPlayer(playerId)
 
-      queryHandler.handle(query) should beFailedFutureWith(PlayerNotFound(playerId))
+      val initialState = PokerState.empty
+
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(initialState) should beLeftContaining[Throwable](PlayerNotFound(playerId)))
     }
 
     // TODO missing validation test

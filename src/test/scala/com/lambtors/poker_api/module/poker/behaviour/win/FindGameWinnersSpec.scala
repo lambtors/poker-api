@@ -2,13 +2,15 @@ package com.lambtors.poker_api.module.poker.behaviour.win
 
 import java.util.UUID
 
-import scala.concurrent.Future
 import scala.util.Random
 
 import cats.implicits._
-
-import com.lambtors.poker_api.module.poker.application.win.{FindGameWinnersQueryHandler, GameWinnersFinder}
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
+import com.lambtors.poker_api.module.poker.application.win.{
+  FindGameWinnersQueryHandler,
+  FindGameWinnersResponse,
+  GameWinnersFinder
+}
+import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
 import com.lambtors.poker_api.module.poker.domain.error.{
   GameCannotEndWhenRiverIsNotDealt,
   InvalidGameId,
@@ -18,62 +20,67 @@ import com.lambtors.poker_api.module.poker.domain.model.Card
 import com.lambtors.poker_api.module.poker.domain.model.CardValue.Ace
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 
-final class FindGameWinnersSpec extends PokerBehaviourSpec {
+final class FindGameWinnersSpec extends PokerBehaviourSpecT {
 
   val queryHandler =
-    new FindGameWinnersQueryHandler[Future](new GameWinnersFinder(pokerGameRepository, playerRepository))
+    new FindGameWinnersQueryHandler(new GameWinnersFinder(pokerGameRepository, playerRepository))
 
   "A FindGameWinnersQueryHandler" should {
-
     "tie all players when there is an ace on the table" in {
       val query = FindGameWinnersQueryStub.random()
 
-      val gameId  = GameIdStub.create(UUID.fromString(query.gameId))
-      val cards   = CardStub.create(cardValue = Ace) +: (1 to 4).map(_ => CardStub.random()).toList
-      val game    = PokerGameStub.createGameAtRiver(cards = cards)
-      val players = (0 to game.amountOfPlayers.amount).map(_ => PlayerStub.create(gameId = gameId)).toList
+      val gameId     = GameIdStub.create(UUID.fromString(query.gameId))
+      val tableCards = CardStub.create(cardValue = Ace) +: (1 to 4).map(_ => CardStub.random()).toList
+      val game       = PokerGameStub.createGameAtRiver(gameId = gameId, cards = tableCards)
+      val players    = (0 to game.amountOfPlayers.amount).map(_ => PlayerStub.create(gameId = gameId)).toList
 
-      shouldFindPokerGame(gameId, game)
-      shouldFindPlayersByGameId(gameId, players)
+      val initialState = PokerState.empty
+        .withGame(game)
+        .withPlayers(players)
 
       val expectedResponse = FindGameWinnersResponseStub.create(players.map(_.playerId.playerId.toString))
 
-      val result = queryHandler.handle(query)
-      result should beValid
-      result.map(_.futureValue should ===(expectedResponse))
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(initialState) should beRightMatchingPredicate[FindGameWinnersResponse](response =>
+        response.winnersPlayerIds.toSet == expectedResponse.winnersPlayerIds.toSet))
     }
 
     "acknowledge a single winner when he has the highest card" in {
       val query = FindGameWinnersQueryStub.random()
 
-      val gameId = GameIdStub.create(UUID.fromString(query.gameId))
-      val cards  = (1 to 5).map(_ => notAnAceCard()).toList
-      val game   = PokerGameStub.createGameAtRiver(cards = cards)
-      val winner = PlayerStub.create(firstCard = CardStub.create(cardValue = Ace))
-      val losers = (1 to game.amountOfPlayers.amount)
+      val gameId     = GameIdStub.create(UUID.fromString(query.gameId))
+      val tableCards = (1 to 5).map(_ => notAnAceCard()).toList
+      val game       = PokerGameStub.createGameAtRiver(gameId = gameId, cards = tableCards)
+      val winner     = PlayerStub.create(firstCard = CardStub.create(cardValue = Ace), gameId = gameId)
+      val losers = (1 until game.amountOfPlayers.amount)
         .map(_ => PlayerStub.create(gameId = gameId, firstCard = notAnAceCard(), secondCard = notAnAceCard()))
         .toList
       val players = Random.shuffle(winner +: losers)
 
-      shouldFindPokerGame(gameId, game)
-      shouldFindPlayersByGameId(gameId, players)
+      val initialState = PokerState.empty
+        .withGame(game)
+        .withPlayers(players)
 
       val expectedResponse = FindGameWinnersResponseStub.create(List(winner.playerId.playerId.toString))
 
-      val result = queryHandler.handle(query)
-      result should beValid
-      result.map(_.futureValue should ===(expectedResponse))
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(initialState) should beRightContaining(expectedResponse))
     }
 
     "fail if the game is not in end position" in {
       val query = FindGameWinnersQueryStub.random()
 
       val gameId = GameIdStub.create(UUID.fromString(query.gameId))
-      val game   = PokerGameStub.createGameNotAtRiver()
+      val game   = PokerGameStub.createGameNotAtRiver(gameId)
 
-      shouldFindPokerGame(gameId, game)
+      val initialState = PokerState.empty.withGame(game)
 
-      queryHandler.handle(query) should beFailedFutureWith(GameCannotEndWhenRiverIsNotDealt(gameId))
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(
+        _.runA(initialState) should beLeftContaining[Throwable](GameCannotEndWhenRiverIsNotDealt(gameId)))
     }
 
     "fail if the game doesn't exist" in {
@@ -81,9 +88,9 @@ final class FindGameWinnersSpec extends PokerBehaviourSpec {
 
       val gameId = GameIdStub.create(UUID.fromString(query.gameId))
 
-      shouldNotFindPokerGame(gameId)
-
-      queryHandler.handle(query) should beFailedFutureWith(PokerGameNotFound(gameId))
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(PokerState.empty) should beLeftContaining[Throwable](PokerGameNotFound(gameId)))
     }
 
     "fail with validation errors when the query is invalid" in {

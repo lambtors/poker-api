@@ -74,6 +74,14 @@ trait ValidationMatchers extends Matchers with ScalaFutures {
     )
   }
 
+  def beRightMatchingPredicate[T](predicate: T => Boolean): Matcher[Either[_, T]] = Matcher { either =>
+    MatchResult(
+      either.fold(_ => false, predicate(_)),
+      s"'$either' was not a right matching given predicate.",
+      s"'$either' was a right matching given predicate, but should not have been."
+    )
+  }
+
   def beLeftContaining[T](value: T): Matcher[Either[T, _]] = Matcher { either =>
     MatchResult(
       either.fold(_ === value, _ => false),
