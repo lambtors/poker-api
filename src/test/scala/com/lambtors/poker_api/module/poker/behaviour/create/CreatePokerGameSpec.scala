@@ -13,7 +13,7 @@ import com.lambtors.poker_api.module.poker.domain.error.{
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 import com.lambtors.poker_api.module.shared.ProviderSpec
 
-final class CreatePokerGameSpec extends PokerBehaviourSpecT with ProviderSpec {
+final class CreatePokerGameSpec extends PokerBehaviourSpecT {
   val commandHandler = new CreatePokerGameCommandHandler[Q](
     new PokerGameCreator[Q](pokerGameRepository, playerRepository, uuidProviderStateT, deckProviderStateT)
   )

@@ -24,11 +24,19 @@ trait PokerStateT {
         playerRepositoryState = playerRepositoryState + (player.gameId                  ->
           (playerRepositoryState.getOrElse(player.gameId, Map.empty) + (player.playerId -> player))))
 
+    def withPlayers(players: List[Player]): PokerState = players match {
+      case head :: tail => withPlayer(head).withPlayers(tail)
+      case Nil          => this
+    }
+
     def withGame(pokerGame: PokerGame): PokerState =
       copy(pokerGameRepositoryState = pokerGameRepositoryState + (pokerGame.gameId -> pokerGame))
 
     def withDeck(deck: List[Card]): PokerState =
       copy(deckProviderState = deckProviderState :+ deck)
+
+    def withoutDecks(): PokerState =
+      copy(deckProviderState = Nil)
   }
 
   object PokerState {
