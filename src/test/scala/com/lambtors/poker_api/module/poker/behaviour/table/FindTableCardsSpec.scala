@@ -6,7 +6,12 @@ import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.table.find.{FindTableCardsQueryHandler, TableCardsFinder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{InvalidGameId, PokerGameNotFound}
-import com.lambtors.poker_api.module.poker.infrastructure.stub.{FindTableCardsQueryStub, GameIdStub, PokerGameStub, TableCardsResponseStub}
+import com.lambtors.poker_api.module.poker.infrastructure.stub.{
+  FindTableCardsQueryStub,
+  GameIdStub,
+  PokerGameStub,
+  TableCardsResponseStub
+}
 
 final class FindTableCardsSpec extends PokerBehaviourSpec {
   private val queryHandler = new FindTableCardsQueryHandler(new TableCardsFinder(pokerGameRepository))

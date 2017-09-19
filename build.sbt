@@ -19,8 +19,8 @@ libraryDependencies ++= Seq(
 
 /** ********* TEST DEPENDENCIES *****************/
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest"                   % "3.0.1" % Test,
-  "org.hablapps"  %% "puretest-cats"               % "0.2"   % Test
+  "org.scalatest" %% "scalatest"     % "3.0.1" % Test,
+  "org.hablapps"  %% "puretest-cats" % "0.2"   % Test
 )
 
 /** ********* COMMANDS ALIASES ******************/

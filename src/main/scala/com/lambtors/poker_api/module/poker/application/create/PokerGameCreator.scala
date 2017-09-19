@@ -30,7 +30,8 @@ final class PokerGameCreator[P[_]: MonadErrorThrowable](
                       leftoverCards = otherCards
                       uUIDProvider
                         .provide()
-                        .flatMap(uuid => playerRepository.insert(Player(PlayerId(uuid), gameId, firstCard, secondCard)))
+                        .flatMap(uuid =>
+                          playerRepository.insert(Player(PlayerId(uuid), gameId, firstCard, secondCard)))
                     }
                   )
               }
