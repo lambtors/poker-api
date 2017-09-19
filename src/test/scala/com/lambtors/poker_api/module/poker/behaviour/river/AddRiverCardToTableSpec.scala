@@ -49,7 +49,7 @@ final class AddRiverCardToTableSpec extends PokerBehaviourSpec {
       validatedStateT.map(_.runS(initialState) should beRightContaining(finalState))
     }
 
-    "return a failed future in case the game has river already given" in {
+    "fail in case the game has river already given" in {
       val command   = AddRiverCardToTableCommandStub.random()
       val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createGameAtRiver(gameId)
@@ -62,7 +62,7 @@ final class AddRiverCardToTableSpec extends PokerBehaviourSpec {
         _.runS(initialState) should beLeftContaining[Throwable](RiverNotPossibleWhenItIsAlreadyGiven(gameId)))
     }
 
-    "return a failed future in case the turn is not given yet" in {
+    "fail in case the turn is not given yet" in {
       val command   = AddRiverCardToTableCommandStub.random()
       val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createGameAtFlop(gameId)
@@ -75,7 +75,7 @@ final class AddRiverCardToTableSpec extends PokerBehaviourSpec {
         _.runS(initialState) should beLeftContaining[Throwable](RiverNotPossibleWhenTurnIsNotGiven(gameId)))
     }
 
-    "return a failed future in case a game already exists with the same id" in {
+    "fail in case a game already exists with the same id" in {
       val command = AddRiverCardToTableCommandStub.random()
       val gameId  = GameIdStub.create(UUID.fromString(command.gameId))
 

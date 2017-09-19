@@ -8,7 +8,7 @@ import com.lambtors.poker_api.module.poker.application.player_cards.find.{
   PlayerCardsFinder
 }
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
+import com.lambtors.poker_api.module.poker.domain.error.{InvalidPlayerId, PlayerNotFound}
 import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   FindPlayerCardsQueryStub,
   FindPlayerCardsResponseStub,
@@ -47,6 +47,10 @@ final class FindPlayerCardsSpec extends PokerBehaviourSpec {
       validatedStateT.map(_.runA(initialState) should beLeftContaining[Throwable](PlayerNotFound(playerId)))
     }
 
-    // TODO missing validation test
+    "have validation errors on an invalid query" in {
+      val query = FindPlayerCardsQueryStub.invalid()
+
+      queryHandler.handle(query) should haveValidationErrors(InvalidPlayerId(query.playerId))
+    }
   }
 }

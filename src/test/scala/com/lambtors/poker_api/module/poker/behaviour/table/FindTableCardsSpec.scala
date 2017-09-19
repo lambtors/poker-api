@@ -27,7 +27,7 @@ final class FindTableCardsSpec extends PokerBehaviourSpec {
       validatedStateT.map(_.runA(initialState) should beRightContaining(expectedResponse))
     }
 
-    "return a failed future in case a game does not exists with the given id" in {
+    "fail in case a game does not exists with the given id" in {
       val query = FindTableCardsQueryStub.random()
 
       val gameId = GameIdStub.create(UUID.fromString(query.gameId))
