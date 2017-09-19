@@ -7,7 +7,7 @@ import com.lambtors.poker_api.module.poker.application.player_cards.find.{
   FindPlayerCardsQueryHandler,
   PlayerCardsFinder
 }
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
+import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
 import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   FindPlayerCardsQueryStub,
@@ -16,7 +16,7 @@ import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   PlayerStub
 }
 
-final class FindPlayerCardsSpec extends PokerBehaviourSpecT {
+final class FindPlayerCardsSpec extends PokerBehaviourSpec {
 
   val queryHandler = new FindPlayerCardsQueryHandler(new PlayerCardsFinder(playerRepository))
 

@@ -4,18 +4,17 @@ import java.util.UUID
 
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.create.{CreatePokerGameCommandHandler, PokerGameCreator}
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
+import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{
   InvalidAmountOfPlayers,
   InvalidGameId,
   PokerGameAlreadyExisting
 }
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
-import com.lambtors.poker_api.module.shared.ProviderSpec
 
-final class CreatePokerGameSpec extends PokerBehaviourSpecT {
-  val commandHandler = new CreatePokerGameCommandHandler[Q](
-    new PokerGameCreator[Q](pokerGameRepository, playerRepository, uuidProviderStateT, deckProviderStateT)
+final class CreatePokerGameSpec extends PokerBehaviourSpec {
+  val commandHandler = new CreatePokerGameCommandHandler(
+    new PokerGameCreator(pokerGameRepository, playerRepository, uuidProvider, deckProvider)
   )
 
   "A CreatePokerGameCommandHandler" should {

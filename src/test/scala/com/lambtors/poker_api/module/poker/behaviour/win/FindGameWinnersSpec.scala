@@ -10,7 +10,7 @@ import com.lambtors.poker_api.module.poker.application.win.{
   FindGameWinnersResponse,
   GameWinnersFinder
 }
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
+import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{
   GameCannotEndWhenRiverIsNotDealt,
   InvalidGameId,
@@ -20,7 +20,7 @@ import com.lambtors.poker_api.module.poker.domain.model.Card
 import com.lambtors.poker_api.module.poker.domain.model.CardValue.Ace
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 
-final class FindGameWinnersSpec extends PokerBehaviourSpecT {
+final class FindGameWinnersSpec extends PokerBehaviourSpec {
 
   val queryHandler =
     new FindGameWinnersQueryHandler(new GameWinnersFinder(pokerGameRepository, playerRepository))

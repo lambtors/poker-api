@@ -4,10 +4,8 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.util.Try
 
-import cats.data.StateT
 import cats.data.Validated.{Invalid, Valid}
 import com.lambtors.poker_api.module.poker.domain.error.PokerValidationError
-import com.lambtors.poker_api.module.shared.domain.Validation
 import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 import org.scalatest.Matchers
 import org.scalatest.concurrent.ScalaFutures

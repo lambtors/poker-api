@@ -6,7 +6,7 @@ import scala.util.Random
 
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.flop.{AddFlopCardsToTableCommandHandler, FlopCardsAdder}
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
+import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{
   FlopNotPossibleWhenItIsAlreadyGiven,
   InvalidGameId,
@@ -14,9 +14,9 @@ import com.lambtors.poker_api.module.poker.domain.error.{
 }
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 
-final class AddFlopCardsToTableSpec extends PokerBehaviourSpecT {
+final class AddFlopCardsToTableSpec extends PokerBehaviourSpec {
   val commandHandler = new AddFlopCardsToTableCommandHandler(
-    new FlopCardsAdder(pokerGameRepository, playerRepository, deckProviderStateT)
+    new FlopCardsAdder(pokerGameRepository, playerRepository, deckProvider)
   )
 
   "Add flop cards to table command hander" should {

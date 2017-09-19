@@ -1,7 +1,5 @@
 package com.lambtors.poker_api.module.poker.application.river
 
-import scala.collection.immutable
-
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.error.{

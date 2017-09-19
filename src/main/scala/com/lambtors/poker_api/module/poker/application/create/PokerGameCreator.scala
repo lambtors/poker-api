@@ -1,7 +1,5 @@
 package com.lambtors.poker_api.module.poker.application.create
 
-import java.util.UUID
-
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
 import com.lambtors.poker_api.module.poker.domain.error.PokerGameAlreadyExisting

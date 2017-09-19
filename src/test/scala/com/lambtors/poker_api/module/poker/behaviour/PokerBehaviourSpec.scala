@@ -2,11 +2,9 @@ package com.lambtors.poker_api.module.poker.behaviour
 
 import java.util.UUID
 
-import cats.Functor
-import cats.implicits._
 import cats.data.{OptionT, StateT}
+import cats.implicits._
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
-import com.lambtors.poker_api.module.poker.domain.error.PokerError
 import com.lambtors.poker_api.module.poker.domain.model._
 import com.lambtors.poker_api.module.shared.ValidationMatchers
 import com.lambtors.poker_api.module.shared.domain.{DeckProvider, UUIDProvider}
@@ -52,11 +50,12 @@ trait PokerStateT {
 
   val pokerGameRepository: PokerGameRepository[Q] = new PokerGameRepository[Q] {
     override def insert(pokerGame: PokerGame): Q[Unit] = Q[Unit] { state =>
-      Right(state.withGame(pokerGame), ())
+      Right((state.withGame(pokerGame), ()))
     }
 
     override def update(pokerGame: PokerGame): Q[Unit] = Q[Unit] { state =>
-      Right(state.copy(pokerGameRepositoryState = state.pokerGameRepositoryState + (pokerGame.gameId -> pokerGame)), ())
+      Right(
+        (state.copy(pokerGameRepositoryState = state.pokerGameRepositoryState + (pokerGame.gameId -> pokerGame)), ()))
     }
 
     override def search(gameId: GameId): OptionT[Q, PokerGame] =
@@ -67,7 +66,7 @@ trait PokerStateT {
 
   val playerRepository: PlayerRepository[Q] = new PlayerRepository[Q] {
     override def insert(player: Player): Q[Unit] = Q[Unit] { state =>
-      Right(state.withPlayer(player), ())
+      Right((state.withPlayer(player), ()))
     }
 
     override def search(playerId: PlayerId): OptionT[Q, Player] =
@@ -80,22 +79,22 @@ trait PokerStateT {
     }
   }
 
-  val uuidProviderStateT: UUIDProvider[Q] = new UUIDProvider[Q] {
+  val uuidProvider: UUIDProvider[Q] = new UUIDProvider[Q] {
     override def provide(): Q[UUID] = Q[UUID] { state =>
       val uuid :: leftoverUuids = state.uuidProvisions
-      Right(state.copy(uuidProvisions = leftoverUuids), uuid)
+      Right((state.copy(uuidProvisions = leftoverUuids), uuid))
     }
   }
 
-  val deckProviderStateT: DeckProvider[Q] = new DeckProvider[Q] {
+  val deckProvider: DeckProvider[Q] = new DeckProvider[Q] {
     override def provide(): Q[List[Card]] = Q[List[Card]] { state =>
-      Right(state.copy(deckProviderState = state.deckProviderState.tail), state.deckProviderState.head)
+      Right((state.copy(deckProviderState = state.deckProviderState.tail), state.deckProviderState.head))
     }
 
     override def shuffleGivenDeck(deck: List[Card]): Q[List[Card]] = Q[List[Card]] { state =>
-      Right(state.copy(deckProviderState = state.deckProviderState.tail), state.deckProviderState.head)
+      Right((state.copy(deckProviderState = state.deckProviderState.tail), state.deckProviderState.head))
     }
   }
 }
 
-abstract class PokerBehaviourSpecT extends WordSpec with Matchers with PokerStateT with ValidationMatchers
+abstract class PokerBehaviourSpec extends WordSpec with Matchers with PokerStateT with ValidationMatchers

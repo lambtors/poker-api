@@ -6,7 +6,7 @@ import scala.util.Random
 
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.turn.{AddTurnCardToTableCommandHandler, TurnCardAdder}
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
+import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{
   InvalidGameId,
   PokerGameNotFound,
@@ -15,9 +15,9 @@ import com.lambtors.poker_api.module.poker.domain.error.{
 }
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 
-final class AddTurnCardToTableSpec extends PokerBehaviourSpecT {
+final class AddTurnCardToTableSpec extends PokerBehaviourSpec {
   val commandHandler = new AddTurnCardToTableCommandHandler(
-    new TurnCardAdder(pokerGameRepository, playerRepository, deckProviderStateT)
+    new TurnCardAdder(pokerGameRepository, playerRepository, deckProvider)
   )
 
   "Add turn card to table command handler" should {

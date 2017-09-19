@@ -6,7 +6,7 @@ import scala.util.Random
 
 import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.river.{AddRiverCardToTableCommandHandler, RiverCardAdder}
-import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpecT
+import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{
   InvalidGameId,
   PokerGameNotFound,
@@ -15,9 +15,9 @@ import com.lambtors.poker_api.module.poker.domain.error.{
 }
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
 
-final class AddRiverCardToTableSpec extends PokerBehaviourSpecT {
+final class AddRiverCardToTableSpec extends PokerBehaviourSpec {
   val commandHandler = new AddRiverCardToTableCommandHandler(
-    new RiverCardAdder(pokerGameRepository, playerRepository, deckProviderStateT)
+    new RiverCardAdder(pokerGameRepository, playerRepository, deckProvider)
   )
 
   "Add river card to table spec" should {
