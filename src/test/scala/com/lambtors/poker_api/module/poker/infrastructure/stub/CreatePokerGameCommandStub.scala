@@ -8,4 +8,6 @@ object CreatePokerGameCommandStub {
     CreatePokerGameCommand(amountOfPlayers, gameId)
 
   def random(): CreatePokerGameCommand = create()
+
+  def invalid(): CreatePokerGameCommand = create(AmountOfPlayersStub.invalid(), GameIdStub.invalid())
 }

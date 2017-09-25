@@ -10,27 +10,34 @@ import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.Mo
 final class PokerGameCreator[P[_]: MonadErrorThrowable](
     pokerGameRepository: PokerGameRepository[P],
     playerRepository: PlayerRepository[P],
-    uUIDProvider: UUIDProvider,
-    deckProvider: DeckProvider
+    uUIDProvider: UUIDProvider[P],
+    deckProvider: DeckProvider[P]
 ) {
   def create(amountOfPlayers: AmountOfPlayers, gameId: GameId): P[Unit] = {
-    pokerGameRepository.search(gameId).fold {
-      pokerGameRepository
-        .insert(PokerGame(gameId, amountOfPlayers, List.empty))
-        .map(
-          _ => {
-            var cards = deckProvider.provide()
-
-            (1 to amountOfPlayers.amount).foreach(
-              _ => {
-                val firstCard :: cardsWithoutFirstCard = cards
-                val secondCard :: cardsWithoutFirstAndSecondCard = cardsWithoutFirstCard
-                cards = cardsWithoutFirstAndSecondCard
-                playerRepository.insert(Player(PlayerId(uUIDProvider.provide()), gameId, firstCard, secondCard))
+    pokerGameRepository
+      .search(gameId)
+      .fold {
+        pokerGameRepository
+          .insert(PokerGame(gameId, amountOfPlayers, List.empty))
+          .flatMap(
+            _ => {
+              deckProvider.provide().flatMap { cards =>
+                var leftoverCards = cards
+                (1 to amountOfPlayers.amount).toList
+                  .traverse_(
+                    _ => {
+                      val firstCard :: secondCard :: otherCards = leftoverCards
+                      leftoverCards = otherCards
+                      uUIDProvider
+                        .provide()
+                        .flatMap(uuid =>
+                          playerRepository.insert(Player(PlayerId(uuid), gameId, firstCard, secondCard)))
+                    }
+                  )
               }
-            )
-          }
-        )
-    }(_ => MonadErrorThrowable[P].raiseError(PokerGameAlreadyExisting(gameId))).flatten
+            }
+          )
+      }(_ => MonadErrorThrowable[P].raiseError(PokerGameAlreadyExisting(gameId)))
+      .flatten
   }
 }

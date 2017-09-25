@@ -8,7 +8,7 @@ import com.lambtors.poker_api.module.poker.application.player_cards.find.{
   PlayerCardsFinder
 }
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
-import com.lambtors.poker_api.module.poker.domain.error.PlayerNotFound
+import com.lambtors.poker_api.module.poker.domain.error.{InvalidPlayerId, PlayerNotFound}
 import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   FindPlayerCardsQueryStub,
   FindPlayerCardsResponseStub,
@@ -25,24 +25,32 @@ final class FindPlayerCardsSpec extends PokerBehaviourSpec {
       val query = FindPlayerCardsQueryStub.random()
 
       val player = PlayerStub.create(playerId = PlayerIdStub.create(UUID.fromString(query.playerId)))
-      shouldFindPlayer(player.playerId, player)
+
+      val initialState = PokerState.empty.withPlayer(player)
 
       val expectedResponse = FindPlayerCardsResponseStub.create(player.cards)
 
-      val result = queryHandler.handle(query)
-      result should beValid
-      result.map(_.futureValue should ===(expectedResponse))
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(initialState) should beRightContaining(expectedResponse))
     }
 
     "fail if the player does not exist" in {
       val query = FindPlayerCardsQueryStub.random()
 
       val playerId = PlayerIdStub.create(UUID.fromString(query.playerId))
-      shouldNotFindPlayer(playerId)
 
-      queryHandler.handle(query) should beFailedFutureWith(PlayerNotFound(playerId))
+      val initialState = PokerState.empty
+
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(initialState) should beLeftContaining[Throwable](PlayerNotFound(playerId)))
     }
 
-    // TODO missing validation test
+    "have validation errors on an invalid query" in {
+      val query = FindPlayerCardsQueryStub.invalid()
+
+      queryHandler.handle(query) should haveValidationErrors(InvalidPlayerId(query.playerId))
+    }
   }
 }
