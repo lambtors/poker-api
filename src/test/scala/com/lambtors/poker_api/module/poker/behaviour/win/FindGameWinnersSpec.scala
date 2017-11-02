@@ -2,7 +2,10 @@ package com.lambtors.poker_api.module.poker.behaviour.win
 
 import java.util.UUID
 
+import scala.concurrent.Future
 import scala.util.Random
+
+import cats.implicits._
 
 import com.lambtors.poker_api.module.poker.application.win.{FindGameWinnersQueryHandler, GameWinnersFinder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
@@ -17,7 +20,8 @@ import com.lambtors.poker_api.module.poker.infrastructure.stub._
 
 final class FindGameWinnersSpec extends PokerBehaviourSpec {
 
-  val queryHandler = new FindGameWinnersQueryHandler(new GameWinnersFinder(pokerGameRepository, playerRepository))
+  val queryHandler =
+    new FindGameWinnersQueryHandler[Future](new GameWinnersFinder(pokerGameRepository, playerRepository))
 
   "A FindGameWinnersQueryHandler" should {
 

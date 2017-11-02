@@ -2,6 +2,7 @@ package com.lambtors.poker_api.module.poker.behaviour.player_cards.find
 
 import java.util.UUID
 
+import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.player_cards.find.{
   FindPlayerCardsQueryHandler,
   PlayerCardsFinder

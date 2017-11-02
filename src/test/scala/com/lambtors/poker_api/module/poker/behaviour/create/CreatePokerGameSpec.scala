@@ -2,6 +2,7 @@ package com.lambtors.poker_api.module.poker.behaviour.create
 
 import java.util.UUID
 
+import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.create.{CreatePokerGameCommandHandler, PokerGameCreator}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{

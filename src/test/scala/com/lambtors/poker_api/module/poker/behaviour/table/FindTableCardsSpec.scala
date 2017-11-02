@@ -2,6 +2,7 @@ package com.lambtors.poker_api.module.poker.behaviour.table
 
 import java.util.UUID
 
+import cats.implicits._
 import com.lambtors.poker_api.module.poker.application.table.find.{FindTableCardsQueryHandler, TableCardsFinder}
 import com.lambtors.poker_api.module.poker.behaviour.PokerBehaviourSpec
 import com.lambtors.poker_api.module.poker.domain.error.{InvalidGameId, PokerGameNotFound}
