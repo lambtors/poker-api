@@ -46,7 +46,8 @@ final class TurnCardAdder[P[_]: MonadErrorThrowable](
   private def playersCards(players: List[Player]) =
     players.flatMap(player => List(player.firstCard, player.secondCard))
 
-  private def cardsAtTableNumberIsGreaterThanThree(tableCards: List[Card]): P[Boolean] = (tableCards.length > 3).pure[P]
+  private def cardsAtTableNumberIsGreaterThanThree(tableCards: List[Card]): P[Boolean] =
+    (tableCards.length > 3).pure[P]
 
   private def cardsAtTableNumberIsLowerThanThree(tableCards: List[Card]): P[Boolean] = (tableCards.length < 3).pure[P]
 }
