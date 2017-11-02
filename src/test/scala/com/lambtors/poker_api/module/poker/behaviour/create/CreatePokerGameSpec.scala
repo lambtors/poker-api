@@ -40,7 +40,7 @@ final class CreatePokerGameSpec extends PokerBehaviourSpec with ProviderSpec {
         shouldInsertPlayer(PlayerStub.create(PlayerIdStub.create(uuid), gameId, firstCard, secondCard))
       }
 
-      commandHandler.handle(command).futureValue
+      commandHandler.handle(command) should beSuccessfulFuture
     }
 
     "return a failed future in case a game already exists with the same id" in {
@@ -51,19 +51,19 @@ final class CreatePokerGameSpec extends PokerBehaviourSpec with ProviderSpec {
 
       shouldFindPokerGame(gameId, pokerGame)
 
-      commandHandler.handle(command).failed.futureValue should ===(PokerGameAlreadyExisting(gameId))
+      commandHandler.handle(command) should beFailedFutureWith(PokerGameAlreadyExisting(gameId))
     }
 
     "return a validation error on invalid amount of players" in {
       val command = CreatePokerGameCommandStub.create(amountOfPlayers = AmountOfPlayersStub.invalid())
 
-      commandHandler.handle(command).failed.futureValue should ===(InvalidAmountOfPlayers(command.amountOfPlayers))
+      commandHandler.handle(command) should haveValidationErrors(InvalidAmountOfPlayers(command.amountOfPlayers))
     }
 
     "return a validation error on invalid game id" in {
       val command = CreatePokerGameCommandStub.create(gameId = GameIdStub.invalid())
 
-      commandHandler.handle(command).failed.futureValue should ===(InvalidGameId(command.gameId))
+      commandHandler.handle(command) should haveValidationErrors(InvalidGameId(command.gameId))
     }
   }
 }

@@ -34,7 +34,9 @@ final class FindGameWinnersSpec extends PokerBehaviourSpec {
 
       val expectedResponse = FindGameWinnersResponseStub.create(players.map(_.playerId.playerId.toString))
 
-      queryHandler.handle(query).futureValue should ===(expectedResponse)
+      val result = queryHandler.handle(query)
+      result should beValid
+      result.map(_.futureValue should ===(expectedResponse))
     }
 
     "acknowledge a single winner when he has the highest card" in {
@@ -54,7 +56,9 @@ final class FindGameWinnersSpec extends PokerBehaviourSpec {
 
       val expectedResponse = FindGameWinnersResponseStub.create(List(winner.playerId.playerId.toString))
 
-      queryHandler.handle(query).futureValue should ===(expectedResponse)
+      val result = queryHandler.handle(query)
+      result should beValid
+      result.map(_.futureValue should ===(expectedResponse))
     }
 
     "fail if the game is not in end position" in {
@@ -65,7 +69,7 @@ final class FindGameWinnersSpec extends PokerBehaviourSpec {
 
       shouldFindPokerGame(gameId, game)
 
-      queryHandler.handle(query).failed.futureValue shouldBe GameCannotEndWhenRiverIsNotDealt(gameId)
+      queryHandler.handle(query) should beFailedFutureWith(GameCannotEndWhenRiverIsNotDealt(gameId))
     }
 
     "fail if the game doesn't exist" in {
@@ -75,13 +79,13 @@ final class FindGameWinnersSpec extends PokerBehaviourSpec {
 
       shouldNotFindPokerGame(gameId)
 
-      queryHandler.handle(query).failed.futureValue shouldBe PokerGameNotFound(gameId)
+      queryHandler.handle(query) should beFailedFutureWith(PokerGameNotFound(gameId))
     }
 
     "fail with validation errors when the query is invalid" in {
       val query = FindGameWinnersQueryStub.invalid()
 
-      queryHandler.handle(query).failed.futureValue shouldBe InvalidGameId(query.gameId)
+      queryHandler.handle(query) should haveValidationErrors(InvalidGameId(query.gameId))
     }
   }
 

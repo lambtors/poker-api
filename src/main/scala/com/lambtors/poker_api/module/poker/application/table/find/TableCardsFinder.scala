@@ -9,12 +9,6 @@ final class TableCardsFinder(repository: PokerGameRepository)(implicit ec: Execu
   def find(gameId: GameId): Future[TableCardsResponse] =
     repository
       .search(gameId)
-      .map(
-        gameOpt =>
-          if (gameOpt.isDefined) {
-            TableCardsResponse(gameOpt.get.tableCards)
-          } else {
-            throw PokerGameNotFound(gameId)
-        }
-      )
+      .flatMap(_.fold(Future.failed[TableCardsResponse](PokerGameNotFound(gameId)))(game =>
+        Future.successful(TableCardsResponse(game.tableCards))))
 }

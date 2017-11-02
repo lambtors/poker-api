@@ -5,7 +5,7 @@ import scala.util.Random
 import ca.mrvisser.sealerate
 import com.lambtors.poker_api.module.poker.domain.model.CardValue._
 
-sealed abstract class CardValue(val value: String)
+sealed abstract class CardValue(value: String)
 
 object CardValue {
   case object Ace   extends CardValue("A")

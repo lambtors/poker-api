@@ -28,7 +28,9 @@ final class FindPlayerCardsSpec extends PokerBehaviourSpec {
 
       val expectedResponse = FindPlayerCardsResponseStub.create(player.cards)
 
-      queryHandler.handle(query).futureValue shouldBe expectedResponse
+      val result = queryHandler.handle(query)
+      result should beValid
+      result.map(_.futureValue should ===(expectedResponse))
     }
 
     "fail if the player does not exist" in {
@@ -37,7 +39,9 @@ final class FindPlayerCardsSpec extends PokerBehaviourSpec {
       val playerId = PlayerIdStub.create(UUID.fromString(query.playerId))
       shouldNotFindPlayer(playerId)
 
-      queryHandler.handle(query).failed.futureValue shouldBe PlayerNotFound(playerId)
+      queryHandler.handle(query) should beFailedFutureWith(PlayerNotFound(playerId))
     }
+
+    // TODO missing validation test
   }
 }

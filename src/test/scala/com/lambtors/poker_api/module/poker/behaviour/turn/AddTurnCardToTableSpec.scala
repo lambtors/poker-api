@@ -39,7 +39,7 @@ class AddTurnCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
       shouldShuffleGivenDeck(availableCards, shuffledAvailableCards)
       shouldUpdatePokerGame(pokerGame.copy(tableCards = pokerGame.tableCards ++ shuffledAvailableCards.take(1)))
 
-      commandHandler.handle(command).futureValue
+      commandHandler.handle(command) should beSuccessfulFuture
     }
 
     "return a failed future in case the game has turn already given" in {
@@ -49,7 +49,7 @@ class AddTurnCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
 
       shouldFindPokerGame(gameId, pokerGame)
 
-      commandHandler.handle(command).failed.futureValue should ===(TurnNotPossibleWhenItIsAlreadyGiven(gameId))
+      commandHandler.handle(command) should beFailedFutureWith(TurnNotPossibleWhenItIsAlreadyGiven(gameId))
     }
 
     "return a failed future in case the flop is not given yet" in {
@@ -59,7 +59,7 @@ class AddTurnCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
 
       shouldFindPokerGame(gameId, pokerGame)
 
-      commandHandler.handle(command).failed.futureValue should ===(TurnNotPossibleWhenFlopIsNotGiven(gameId))
+      commandHandler.handle(command) should beFailedFutureWith(TurnNotPossibleWhenFlopIsNotGiven(gameId))
     }
 
     "return a failed future in case a game already exists with the same id" in {
@@ -68,13 +68,13 @@ class AddTurnCardToTableSpec extends PokerBehaviourSpec with ProviderSpec {
 
       shouldNotFindPokerGame(gameId)
 
-      commandHandler.handle(command).failed.futureValue should ===(PokerGameNotFound(gameId))
+      commandHandler.handle(command) should beFailedFutureWith(PokerGameNotFound(gameId))
     }
 
     "return a validation error on invalid game id" in {
       val command = AddTurnCardToTableCommandStub.create(gameId = GameIdStub.invalid())
 
-      commandHandler.handle(command).failed.futureValue should ===(InvalidGameId(command.gameId))
+      commandHandler.handle(command) should haveValidationErrors(InvalidGameId(command.gameId))
     }
   }
 }

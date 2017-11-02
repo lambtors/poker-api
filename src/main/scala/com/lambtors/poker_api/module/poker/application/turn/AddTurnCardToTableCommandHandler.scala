@@ -2,12 +2,11 @@ package com.lambtors.poker_api.module.poker.application.turn
 
 import com.lambtors.poker_api.infrastructure.command_bus.CommandHandler
 import com.lambtors.poker_api.module.poker.domain.model.GameId
+import scala.concurrent.Future
 
-import scala.concurrent.{ExecutionContext, Future}
+import com.lambtors.poker_api.module.shared.domain.Validation.Validation
 
-class AddTurnCardToTableCommandHandler(adder: TurnCardAdder)(implicit ec: ExecutionContext)
-    extends CommandHandler[AddTurnCardToTableCommand] {
-  override def handle(command: AddTurnCardToTableCommand): Future[Unit] = validate(command).flatMap(adder.add)
-
-  private def validate(command: AddTurnCardToTableCommand) = GameId.fromString(command.gameId)
+class AddTurnCardToTableCommandHandler(adder: TurnCardAdder) extends CommandHandler[AddTurnCardToTableCommand] {
+  override def handle(command: AddTurnCardToTableCommand): Validation[Future[Unit]] =
+    GameId.fromString(command.gameId).map(adder.add)
 }
