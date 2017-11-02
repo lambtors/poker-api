@@ -7,4 +7,6 @@ object FindPlayerCardsQueryStub {
     FindPlayerCardsQuery(playerId)
 
   def random(): FindPlayerCardsQuery = create()
+
+  def invalid(): FindPlayerCardsQuery = create(PlayerIdStub.invalid())
 }

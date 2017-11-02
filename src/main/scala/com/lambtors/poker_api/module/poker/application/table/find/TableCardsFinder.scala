@@ -10,6 +10,7 @@ final class TableCardsFinder[P[_]: MonadErrorThrowable](repository: PokerGameRep
   def find(gameId: GameId): P[TableCardsResponse] =
     repository
       .search(gameId)
-      .flatMap(_.fold[P[TableCardsResponse]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-        TableCardsResponse(game.tableCards).pure[P]))
+      .fold[P[TableCardsResponse]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
+        TableCardsResponse(game.tableCards).pure[P])
+      .flatten
 }

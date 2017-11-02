@@ -1,49 +1,100 @@
 package com.lambtors.poker_api.module.poker.behaviour
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.UUID
 
+import cats.data.{OptionT, StateT}
+import cats.implicits._
 import com.lambtors.poker_api.module.poker.domain.{PlayerRepository, PokerGameRepository}
-import com.lambtors.poker_api.module.poker.domain.model.{GameId, Player, PlayerId, PokerGame}
+import com.lambtors.poker_api.module.poker.domain.model._
 import com.lambtors.poker_api.module.shared.ValidationMatchers
-import org.scalactic.TypeCheckedTripleEquals
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.{OneInstancePerTest, WordSpec}
+import com.lambtors.poker_api.module.shared.domain.{DeckProvider, UUIDProvider}
+import org.scalatest.{Matchers, WordSpec}
 
-trait PokerBehaviourSpec
-    extends WordSpec
-    with TypeCheckedTripleEquals
-    with MockFactory
-    with OneInstancePerTest
-    with ValidationMatchers {
-  implicit val ec = ExecutionContext.global
+trait PokerStateT {
+  case class PokerState(pokerGameRepositoryState: Map[GameId, PokerGame],
+                        playerRepositoryState: Map[GameId, Map[PlayerId, Player]],
+                        uuidProvisions: List[UUID],
+                        deckProviderState: List[List[Card]]) {
+    def withUuid(uuid: UUID): PokerState = copy(uuidProvisions = uuidProvisions :+ uuid)
 
-  protected val pokerGameRepository: PokerGameRepository[Future] = mock[PokerGameRepository[Future]]
-  protected val playerRepository: PlayerRepository[Future]       = mock[PlayerRepository[Future]]
+    def withPlayer(player: Player): PokerState =
+      copy(
+        playerRepositoryState = playerRepositoryState + (player.gameId                  ->
+          (playerRepositoryState.getOrElse(player.gameId, Map.empty) + (player.playerId -> player))))
 
-  def shouldFindPokerGame(gameId: GameId, pokerGame: PokerGame): Unit =
-    (pokerGameRepository.search _).expects(gameId).once().returning(Future.successful(Some(pokerGame)))
+    def withPlayers(players: List[Player]): PokerState = players match {
+      case head :: tail => withPlayer(head).withPlayers(tail)
+      case Nil          => this
+    }
 
-  def shouldNotFindPokerGame(gameId: GameId): Unit =
-    (pokerGameRepository.search _).expects(gameId).once().returning(Future.successful(None))
+    def withGame(pokerGame: PokerGame): PokerState =
+      copy(pokerGameRepositoryState = pokerGameRepositoryState + (pokerGame.gameId -> pokerGame))
 
-  def shouldInsertPokerGame(pokerGame: PokerGame): Unit =
-    (pokerGameRepository.insert _).expects(pokerGame).once().returning(Future.successful(Unit))
+    def withDeck(deck: List[Card]): PokerState =
+      copy(deckProviderState = deckProviderState :+ deck)
 
-  def shouldUpdatePokerGame(pokerGame: PokerGame): Unit =
-    (pokerGameRepository.update _).expects(pokerGame).once().returns(Future.successful(Unit))
+    def withoutDecks(): PokerState =
+      copy(deckProviderState = Nil)
+  }
 
-  def shouldFindPlayersByGameId(gameId: GameId, players: List[Player]): Unit =
-    (playerRepository.search(_: GameId)).expects(gameId).once().returns(Future.successful(players))
+  object PokerState {
+    val empty = PokerState(Map.empty, Map.empty, Nil, Nil)
+  }
 
-  def shouldNotFindPlayersByGameId(gameId: GameId): Unit =
-    (playerRepository.search(_: GameId)).expects(gameId).once().returns(Future.successful(List.empty))
+  type R[A] = Either[Throwable, A]
+  type Q[A] = StateT[R, PokerState, A]
 
-  def shouldFindPlayer(playerId: PlayerId, player: Player): Unit =
-    (playerRepository.search(_: PlayerId)).expects(playerId).once().returns(Future.successful(Some(player)))
+  object Q {
+    def apply[A](f: PokerState => R[(PokerState, A)]): StateT[R, PokerState, A] = StateT[R, PokerState, A](f)
+  }
 
-  def shouldNotFindPlayer(playerId: PlayerId): Unit =
-    (playerRepository.search(_: PlayerId)).expects(playerId).once().returns(Future.successful(None))
+  val pokerGameRepository: PokerGameRepository[Q] = new PokerGameRepository[Q] {
+    override def insert(pokerGame: PokerGame): Q[Unit] = Q[Unit] { state =>
+      Right((state.withGame(pokerGame), ()))
+    }
 
-  def shouldInsertPlayer(player: Player): Unit =
-    (playerRepository.insert _).expects(player).returns(Future.successful(Unit))
+    override def update(pokerGame: PokerGame): Q[Unit] = Q[Unit] { state =>
+      Right(
+        (state.copy(pokerGameRepositoryState = state.pokerGameRepositoryState + (pokerGame.gameId -> pokerGame)), ()))
+    }
+
+    override def search(gameId: GameId): OptionT[Q, PokerGame] =
+      OptionT[Q, PokerGame](Q[Option[PokerGame]] { state =>
+        Right((state, state.pokerGameRepositoryState.get(gameId)))
+      })
+  }
+
+  val playerRepository: PlayerRepository[Q] = new PlayerRepository[Q] {
+    override def insert(player: Player): Q[Unit] = Q[Unit] { state =>
+      Right((state.withPlayer(player), ()))
+    }
+
+    override def search(playerId: PlayerId): OptionT[Q, Player] =
+      OptionT[Q, Player](Q[Option[Player]] { state =>
+        Right((state, state.playerRepositoryState.values.toList.flatten.toMap.get(playerId)))
+      })
+
+    override def search(gameId: GameId): Q[List[Player]] = Q[List[Player]] { state =>
+      Right((state, state.playerRepositoryState.get(gameId).fold[List[Player]](Nil)(_.values.toList)))
+    }
+  }
+
+  val uuidProvider: UUIDProvider[Q] = new UUIDProvider[Q] {
+    override def provide(): Q[UUID] = Q[UUID] { state =>
+      val uuid :: leftoverUuids = state.uuidProvisions
+      Right((state.copy(uuidProvisions = leftoverUuids), uuid))
+    }
+  }
+
+  val deckProvider: DeckProvider[Q] = new DeckProvider[Q] {
+    override def provide(): Q[List[Card]] = Q[List[Card]] { state =>
+      Right((state.copy(deckProviderState = state.deckProviderState.tail), state.deckProviderState.head))
+    }
+
+    override def shuffleGivenDeck(deck: List[Card]): Q[List[Card]] = Q[List[Card]] { state =>
+      Right((state.copy(deckProviderState = state.deckProviderState.tail), state.deckProviderState.head))
+    }
+  }
 }
+
+abstract class PokerBehaviourSpec extends WordSpec with Matchers with PokerStateT with ValidationMatchers

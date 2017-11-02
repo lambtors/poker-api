@@ -12,13 +12,12 @@ final class GameWinnersFinder[P[_]: MonadErrorThrowable](repository: PokerGameRe
   def findWinners(gameId: GameId): P[List[Player]] =
     repository
       .search(gameId)
-      .flatMap(
-        _.fold[P[List[Player]]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-          cardsAtTableNumberIsLowerThanFive(game.tableCards).ifM(
-            MonadErrorThrowable[P].raiseError(GameCannotEndWhenRiverIsNotDealt(gameId)),
-            playerRepository.search(gameId).map(findPlayersWithBestCombination(_, game.tableCards))
-        ))
-      )
+      .fold[P[List[Player]]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
+        cardsAtTableNumberIsLowerThanFive(game.tableCards).ifM(
+          MonadErrorThrowable[P].raiseError(GameCannotEndWhenRiverIsNotDealt(gameId)),
+          playerRepository.search(gameId).map(findPlayersWithBestCombination(_, game.tableCards))
+      ))
+      .flatten
 
   private def findPlayersWithBestCombination(players: List[Player], tableCards: List[Card]): List[Player] = {
     val bestCombinations = players.map(findBestCombinationOf(_, tableCards))

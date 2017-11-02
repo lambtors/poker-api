@@ -13,16 +13,16 @@ import com.lambtors.poker_api.module.poker.domain.error.{
   PokerGameNotFound
 }
 import com.lambtors.poker_api.module.poker.infrastructure.stub._
-import com.lambtors.poker_api.module.shared.ProviderSpec
 
-class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
+final class AddFlopCardsToTableSpec extends PokerBehaviourSpec {
   val commandHandler = new AddFlopCardsToTableCommandHandler(
     new FlopCardsAdder(pokerGameRepository, playerRepository, deckProvider)
   )
 
   "Add flop cards to table command hander" should {
     "add three cards to a table that does not have any card at the table" in {
-      val command      = AddFlopCardsToTableCommandStub.random()
+      val command = AddFlopCardsToTableCommandStub.random()
+
       val gameId       = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame    = PokerGameStub.createNew(gameId)
       val deck         = CardStub.randomDeck()
@@ -32,32 +32,43 @@ class AddFlopCardsToTableSpec extends PokerBehaviourSpec with ProviderSpec {
       val availableCards         = deck.filterNot(deckCard => playersCards.contains(deckCard))
       val shuffledAvailableCards = Random.shuffle(availableCards)
 
-      shouldFindPokerGame(gameId, pokerGame)
-      shouldProvideDeck(deck)
-      shouldFindPlayersByGameId(gameId, players)
-      shouldShuffleGivenDeck(availableCards, shuffledAvailableCards)
-      shouldUpdatePokerGame(pokerGame.copy(tableCards = shuffledAvailableCards.take(3)))
+      val initialState = PokerState.empty
+        .withGame(pokerGame)
+        .withDeck(deck)
+        .withPlayers(players)
+        .withDeck(shuffledAvailableCards)
+      val finalState = initialState
+        .withGame(pokerGame.copy(tableCards = shuffledAvailableCards.take(3)))
+        .withoutDecks()
 
-      commandHandler.handle(command) should beSuccessfulFuture
+      val validatedStateT = commandHandler.handle(command)
+      validatedStateT should beValid
+      validatedStateT.map(_.runS(initialState) should beRightContaining(finalState))
     }
 
-    "return a failed future in case the game has flop already given" in {
-      val command   = AddFlopCardsToTableCommandStub.random()
+    "fail in case the game has flop already given" in {
+      val command      = AddFlopCardsToTableCommandStub.random()
+      var initialState = PokerState.empty
+
       val gameId    = GameIdStub.create(UUID.fromString(command.gameId))
       val pokerGame = PokerGameStub.createGameAtFlop(gameId)
 
-      shouldFindPokerGame(gameId, pokerGame)
+      initialState = initialState.withGame(pokerGame)
 
-      commandHandler.handle(command) should beFailedFutureWith(FlopNotPossibleWhenItIsAlreadyGiven(gameId))
+      val validatedStateT = commandHandler.handle(command)
+      validatedStateT should beValid
+      validatedStateT.map(
+        _.runS(initialState) should beLeftContaining[Throwable](FlopNotPossibleWhenItIsAlreadyGiven(gameId)))
     }
 
-    "return a failed future in case a game already exists with the same id" in {
+    "fail in case a game already exists with the same id" in {
       val command = AddFlopCardsToTableCommandStub.random()
-      val gameId  = GameIdStub.create(UUID.fromString(command.gameId))
 
-      shouldNotFindPokerGame(gameId)
+      val gameId = GameIdStub.create(UUID.fromString(command.gameId))
 
-      commandHandler.handle(command) should beFailedFutureWith(PokerGameNotFound(gameId))
+      val validatedStateT = commandHandler.handle(command)
+      validatedStateT should beValid
+      validatedStateT.map(_.runS(PokerState.empty) should beLeftContaining[Throwable](PokerGameNotFound(gameId)))
     }
 
     "return a validation error on invalid game id" in {

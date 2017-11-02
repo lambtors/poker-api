@@ -13,31 +13,33 @@ import com.lambtors.poker_api.module.poker.infrastructure.stub.{
   TableCardsResponseStub
 }
 
-class FindTableCardsSpec extends PokerBehaviourSpec {
+final class FindTableCardsSpec extends PokerBehaviourSpec {
   private val queryHandler = new FindTableCardsQueryHandler(new TableCardsFinder(pokerGameRepository))
 
   "Find table cards query" should {
     "return cards of the table" in {
-      val query         = FindTableCardsQueryStub.random()
-      val gameId        = GameIdStub.create(UUID.fromString(query.gameId))
-      val pokerGame     = PokerGameStub.create(gameId)
-      val tableResponse = TableCardsResponseStub.create(pokerGame.tableCards)
+      val query = FindTableCardsQueryStub.random()
 
-      shouldFindPokerGame(gameId, pokerGame)
+      val gameId    = GameIdStub.create(UUID.fromString(query.gameId))
+      val pokerGame = PokerGameStub.create(gameId)
 
-      val result = queryHandler.handle(query)
-      result should beValid
-      result.map(_.futureValue should ===(tableResponse))
+      val initialState = PokerState.empty.withGame(pokerGame)
+
+      val expectedResponse = TableCardsResponseStub.create(pokerGame.tableCards)
+
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(initialState) should beRightContaining(expectedResponse))
     }
 
-    "return a failed future in case a game does not exists with the given id" in {
+    "fail in case a game does not exists with the given id" in {
       val query = FindTableCardsQueryStub.random()
 
       val gameId = GameIdStub.create(UUID.fromString(query.gameId))
 
-      shouldNotFindPokerGame(gameId)
-
-      queryHandler.handle(query) should beFailedFutureWith(PokerGameNotFound(gameId))
+      val validatedStateT = queryHandler.handle(query)
+      validatedStateT should beValid
+      validatedStateT.map(_.runA(PokerState.empty) should beLeftContaining[Throwable](PokerGameNotFound(gameId)))
     }
 
     "return a validation error on invalid game id" in {

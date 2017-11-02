@@ -8,4 +8,6 @@ object PlayerIdStub {
   def create(playerId: UUID = UUID.randomUUID()): PlayerId = PlayerId(playerId)
 
   def random(): PlayerId = create()
+
+  def invalid(): String = ""
 }

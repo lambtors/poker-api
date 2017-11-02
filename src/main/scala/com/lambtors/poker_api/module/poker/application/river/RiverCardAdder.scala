@@ -14,39 +14,36 @@ import com.lambtors.poker_api.module.shared.domain.types.ThrowableTypeClasses.Mo
 class RiverCardAdder[P[_]: MonadErrorThrowable](
     repository: PokerGameRepository[P],
     playerRepository: PlayerRepository[P],
-    deckProvider: DeckProvider
+    deckProvider: DeckProvider[P]
 ) {
   def add(gameId: GameId): P[Unit] =
     repository
       .search(gameId)
-      .flatMap(
-        _.fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
-          cardsAtTableNumberGreaterThanFour(game.tableCards).ifM(
-            MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenItIsAlreadyGiven(gameId)),
-            cardsAtTableNumberLowerThanFour(game.tableCards).ifM(
-              MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenTurnIsNotGiven(gameId)),
-              playerRepository
-                .search(gameId)
-                .flatMap(
-                  players =>
-                    repository.update(
-                      game.copy(
-                        tableCards = game.tableCards ++ deckProvider
-                          .shuffleGivenDeck(availableCards(playersCards(players) ++ game.tableCards))
-                          .take(1)
-                      )
-                  )
-                )
-            )
-        )))
+      .fold[P[Unit]](MonadErrorThrowable[P].raiseError(PokerGameNotFound(gameId)))(game =>
+        thereAreMoreThanFourCardsAtTable(game.tableCards).ifM(
+          MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenItIsAlreadyGiven(gameId)),
+          thereAreLessThanFourCardsAtTable(game.tableCards).ifM(
+            MonadErrorThrowable[P].raiseError(RiverNotPossibleWhenTurnIsNotGiven(gameId)),
+            playerRepository
+              .search(gameId)
+              .flatMap(
+                players =>
+                  shuffleAvailableCards(playersCards(players) ++ game.tableCards).flatMap(shuffledCards =>
+                    repository.update(game.copy(tableCards = game.tableCards ++ shuffledCards.take(1))))
+              )
+          )
+      ))
+      .flatten
 
-  private def availableCards(cardsInGame: List[Card]) =
-    deckProvider.provide().filterNot(card => cardsInGame.contains(card))
+  private def shuffleAvailableCards(cardsInGame: List[Card]) =
+    deckProvider
+      .provide()
+      .flatMap(cards => deckProvider.shuffleGivenDeck(cards.filterNot(card => cardsInGame.contains(card))))
 
-  private def playersCards(players: List[Player]) =
+  private def playersCards(players: List[Player]): List[Card] =
     players.flatMap(player => List(player.firstCard, player.secondCard))
 
-  private def cardsAtTableNumberGreaterThanFour(tableCards: List[Card]): P[Boolean] = (tableCards.length > 4).pure[P]
+  private def thereAreMoreThanFourCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length > 4).pure[P]
 
-  private def cardsAtTableNumberLowerThanFour(tableCards: List[Card]): P[Boolean] = (tableCards.length < 4).pure[P]
+  private def thereAreLessThanFourCardsAtTable(tableCards: List[Card]): P[Boolean] = (tableCards.length < 4).pure[P]
 }
