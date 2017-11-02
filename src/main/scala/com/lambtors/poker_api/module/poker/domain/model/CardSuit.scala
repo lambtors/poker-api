@@ -4,7 +4,7 @@ import scala.util.Random
 
 import ca.mrvisser.sealerate
 
-sealed abstract class CardSuit(val suitName: String)
+sealed abstract class CardSuit(suitName: String)
 
 object CardSuit {
   case object Diamonds extends CardSuit("diamonds")
